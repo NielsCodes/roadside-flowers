@@ -90,12 +90,20 @@ export class HomeComponent {
 
     const isMobile = this.isMobileOrTablet();
 
-    const img = new Image();
-    img.src = '../../assets/background.jpg';
-    img.onload = () => {
+    const backgroundImg = new Image();
+    backgroundImg.src = '../../assets/background.jpg';
+    backgroundImg.onload = () => {
       this.stage = 'start';
     };
-  };
+
+    const spotifyImg = new Image();
+    spotifyImg.src = '../../assets/logos/messenger.png';
+
+    const appleImg = new Image();
+    appleImg.src = '../../assets/logos/apple.png';
+
+
+  }
 
   async onSubmit(form: NgForm) {
 
