@@ -342,14 +342,25 @@ app.get('/tickets', async (req, res) => {
             .send();
         return;
     }
-    const urls = await getSignedURLs(id);
-    res
-        .status(200)
-        .json({
-        success: true,
-        urls
-    })
-        .send();
+    try {
+        const urls = await getSignedURLs(id);
+        res
+            .status(200)
+            .json({
+            success: true,
+            urls
+        })
+            .send();
+    }
+    catch (error) {
+        res
+            .status(500)
+            .json({
+            success: false,
+            message: 'Unknown error occured while getting signed URLs'
+        })
+            .send();
+    }
 });
 app.get('/auth/twitter', (req, res, next) => {
     /**
@@ -975,22 +986,28 @@ const createHorizontalImage = async (name, departing, destination, index, id) =>
 const getSignedURLs = async (id) => {
     const expiration = Date.now() + 604800;
     const urls = {};
-    const [files] = await bucket.getFiles({ prefix: `tickets/${id}` });
-    for (const file of files) {
-        const [signedURL] = await file.getSignedUrl({
-            action: 'read',
-            expires: expiration,
-            version: 'v4',
-        });
-        if (file.name.includes('vertical')) {
-            urls.vertical = signedURL;
+    try {
+        const [files] = await bucket.getFiles({ prefix: `tickets/${id}` });
+        for (const file of files) {
+            const [signedURL] = await file.getSignedUrl({
+                action: 'read',
+                expires: expiration,
+                version: 'v4',
+            });
+            if (file.name.includes('vertical')) {
+                urls.vertical = signedURL;
+            }
+            else {
+                urls.horizontal = signedURL;
+            }
         }
-        else {
-            urls.horizontal = signedURL;
-        }
+        ;
+        return urls;
     }
-    ;
-    return urls;
+    catch (error) {
+        console.error(error);
+        throw Error(error);
+    }
 };
 /**
  * Create barcode string from an ID
