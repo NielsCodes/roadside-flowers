@@ -148,9 +148,8 @@ export class CallbackComponent implements OnInit{
       } else if (code !== null && URLState.includes('spotify_')) {
 
         this.referrer = 'spotify';
-
-        const stateElements = URLState.split('_');
-        this.dataId = stateElements[1];
+        const uuidRegex = /[A-Za-z0-9]{8}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{12}/;
+        this.dataId = URLState.match(uuidRegex)[0];
 
         this.http.post(`${this.rootEndpoint}/spotify`, { auth_code: code }).toPromise()
 
