@@ -407,7 +407,7 @@ app.get('/tickets', async (req: Request, res: Response) => {
 
   const id = req.query.id as string;
 
-  if (id === undefined || id === null) {
+  if (id === undefined || id === null || id === '') {
     res
       .status(400)
       .json({
@@ -1268,6 +1268,9 @@ const getSignedURLs = async (id: string) => {
 
   try {
     const [files] = await bucket.getFiles({ prefix: `tickets/${id}` });
+    if (files.length !== 2) {
+      throw Error(`Unable to find tickets with ID: ${id}`);
+    }
     for (const file of files) {
 
       const [signedURL] = await file.getSignedUrl({

@@ -332,7 +332,7 @@ app.post('/register', async (req, res) => {
 });
 app.get('/tickets', async (req, res) => {
     const id = req.query.id;
-    if (id === undefined || id === null) {
+    if (id === undefined || id === null || id === '') {
         res
             .status(400)
             .json({
@@ -988,6 +988,9 @@ const getSignedURLs = async (id) => {
     const urls = {};
     try {
         const [files] = await bucket.getFiles({ prefix: `tickets/${id}` });
+        if (files.length !== 2) {
+            throw Error(`Unable to find tickets with ID: ${id}`);
+        }
         for (const file of files) {
             const [signedURL] = await file.getSignedUrl({
                 action: 'read',
