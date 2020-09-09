@@ -65,7 +65,7 @@
 
 <div id="policy-container" *ngIf="showPolicy" [style.height.px]="windowHeight" [@policyAnimation]>
 
-  <div id="policy-content">
+  <div id="policy-content" [ngStyle]="{'max-height.px': windowHeight - 40}">
 
     <div id="x-close-btn-container">
       <div id="x-close-btn" (click)="onHidePolicy()">
@@ -81,7 +81,7 @@
       <br>
 
       <b>Name</b>
-      <p>Your name will only be used to generate a personalized ticket</p>
+      <p>Your name will only be used to generate a personalized ticket, which you can download after presaving with either Spotify or Apple Music.</p>
 
       <br>
       <b>Email address</b>
@@ -95,7 +95,7 @@
       <p>- All personal data will be removed after the presave campaign ends</p>
       <br>
 
-      <p>- All elements that are not specific to this presave page fall under the general <a href="https://bitbirdofficial.com/privacy" target="_blank" title="Open the bitbird privacy policy in a new tab">bitbird privacy policy</a>. </p>
+      <p>- All elements that are not specific to this presave campaign fall under the general <a href="https://bitbirdofficial.com/privacy" target="_blank" title="Open the bitbird privacy policy in a new tab">bitbird privacy policy</a>. </p>
 
     </div>
 

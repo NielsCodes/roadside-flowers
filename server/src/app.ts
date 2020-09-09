@@ -411,7 +411,7 @@ app.get('/tickets', async (req: Request, res: Response) => {
 
   const id = req.query.id as string;
 
-  if (id === undefined || id === null) {
+  if (id === undefined || id === null || id === '') {
     res
       .status(400)
       .json({
@@ -422,15 +422,28 @@ app.get('/tickets', async (req: Request, res: Response) => {
     return;
   }
 
-  const urls = await getSignedURLs(id);
+  try {
 
-  res
-    .status(200)
-    .json({
-      success: true,
-      urls
-    })
-    .send();
+    const urls = await getSignedURLs(id);
+    res
+      .status(200)
+      .json({
+        success: true,
+        urls
+      })
+      .send();
+
+  } catch (error) {
+
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: 'Unknown error occured while getting signed URLs'
+      })
+      .send()
+  }
+
 
 });
 
@@ -1259,24 +1272,33 @@ const getSignedURLs = async (id: string) => {
   const expiration = Date.now() + 604800;
   const urls: {vertical?: string, horizontal?: string} = {};
 
-  const [files] = await bucket.getFiles({ prefix: `tickets/${id}` });
-  for (const file of files) {
-
-    const [signedURL] = await file.getSignedUrl({
-      action: 'read',
-      expires: expiration,
-      version: 'v4',
-    });
-
-    if (file.name.includes('vertical')) {
-      urls.vertical = signedURL;
-    } else {
-      urls.horizontal = signedURL;
+  try {
+    const [files] = await bucket.getFiles({ prefix: `tickets/${id}` });
+    if (files.length !== 2) {
+      throw Error(`Unable to find tickets with ID: ${id}`);
     }
+    for (const file of files) {
 
-  };
+      const [signedURL] = await file.getSignedUrl({
+        action: 'read',
+        expires: expiration,
+        version: 'v4',
+      });
 
-  return urls;
+      if (file.name.includes('vertical')) {
+        urls.vertical = signedURL;
+      } else {
+        urls.horizontal = signedURL;
+      }
+
+    };
+
+    return urls;
+  } catch (error) {
+    console.error(error);
+    throw Error(error)
+  }
+
 };
 
 /**
