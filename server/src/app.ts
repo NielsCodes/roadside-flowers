@@ -15,7 +15,7 @@ import jwt from 'jsonwebtoken';
 const storage = new Storage();
 const app: Application = express();
 const port = process.env.PORT || 8080;
-const apiVersion = '2.120';
+const apiVersion = '3.000';
 let bucket: Bucket;
 let twitter: Twitter;
 

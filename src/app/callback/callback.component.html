@@ -1,6 +1,10 @@
-<div id="page-container" class="static-frame" [ngClass]="{'vertical': isVertical === true}" [ngStyle]="{'background-size.px': isVertical ? windowHeight*3.5 : windowWidth}" [style.height.px]="windowHeight">
+<div id="page-container" [ngClass]="{'vertical': isVertical === true}" [style.height.px]="windowHeight">
 
-  <div id="output-container" *ngIf="stage === 'download'">
+  <div id="output-image">
+    <img src="../../assets/sample-card.png">
+  </div>
+
+  <!-- <div id="output-container" *ngIf="stage === 'download'">
 
     <div id="output-title">Thank you. You can now download your tickets</div>
 
@@ -19,7 +23,7 @@
 
     <a id="download-fallback" *ngIf="urls" [href]="urls.vertical" title="Open ticket in new window" target="_blank">Download didn't start? Click <u>here</u></a>
 
-  </div>
+  </div> -->
 
 </div>
 
