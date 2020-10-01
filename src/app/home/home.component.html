@@ -1,4 +1,4 @@
-<div id="page-container" class="static-frame" [ngClass]="{'vertical': isVertical === true}" [ngStyle]="{'background-size.px': (isVertical && stage && stage !== 'start') ? windowHeight*3.5 : (isVertical) ? windowHeight : windowWidth}" [style.height.px]="windowHeight">
+<!-- <div id="page-container" class="static-frame" [ngClass]="{'vertical': isVertical === true}" [ngStyle]="{'background-size.px': (isVertical && stage && stage !== 'start') ? windowHeight*3.5 : (isVertical) ? windowHeight : windowWidth}" [style.height.px]="windowHeight">
 
   <div id="start-container" *ngIf="stage === 'start'">
 
@@ -11,33 +11,33 @@
   </div>
 
 
-  <form id="inputs-container" (ngSubmit)="onSubmit(f)" #f="ngForm" *ngIf="stage === 'data'">
+  <form id="inputs-container" (ngSubmit)="onSubmit(f)" #f="ngForm" *ngIf="stage === 'data'"> -->
 
     <!-- Departing from -->
-    <div class="input-group" id="origin-group">
+    <!-- <div class="input-group" id="origin-group">
       <label for="origin">Departing from:</label>
       <input type="text" placeholder="[Origin]" id="origin-input" name="origin" title="Fill in your origin location" [(ngModel)]="formData.origin">
-    </div>
+    </div> -->
 
     <!-- Going to -->
-    <div class="input-group" id="destination-group">
+    <!-- <div class="input-group" id="destination-group">
       <label for="destination">Going to:</label>
       <input type="text" placeholder="[Destination]" id="destination-input" name="destination" title="Fill in your destination location" [(ngModel)]="formData.destination">
-    </div>
+    </div> -->
 
     <!-- Name -->
-    <div class="input-group" id="name-group">
+    <!-- <div class="input-group" id="name-group">
       <label for="name">Name:</label>
       <input type="text" placeholder="[Name]" id="name-input" name="name" title="Fill in your name" [(ngModel)]="formData.name">
-    </div>
+    </div> -->
 
     <!-- Email -->
-    <div class="input-group" id="email-group">
+    <!-- <div class="input-group" id="email-group">
       <label for="email">Email:</label>
       <input type="email" placeholder="[email@email.com]" id="email-input" name="email" title="Fill in your email address" [(ngModel)]="formData.email">
-    </div>
+    </div> -->
 
-    <button id="submit-btn" class="screen-btn" type="submit" title="Click to choose a presave option to get your ticket">Pre-save to print ticket</button>
+    <!-- <button id="submit-btn" class="screen-btn" type="submit" title="Click to choose a presave option to get your ticket">Pre-save to print ticket</button>
 
   </form>
 
@@ -60,10 +60,10 @@
 
   </div>
 
-</div>
+</div> -->
 
 
-<div id="policy-container" *ngIf="showPolicy" [style.height.px]="windowHeight" [@policyAnimation]>
+<!-- <div id="policy-container" *ngIf="showPolicy" [style.height.px]="windowHeight" [@policyAnimation]>
 
   <div id="policy-content" [ngStyle]="{'max-height.px': windowHeight - 40}">
 
@@ -103,6 +103,50 @@
     <div id="close-btn" (click)="onHidePolicy()">I understand</div>
 
   </div>
+
+
+</div> -->
+
+<div id="page-container" [style.height.px]="windowHeight">
+
+
+  <div id="step1-container" class="step" *ngIf="stage === 'step1'" [@stepAnimation]>
+
+  </div>
+
+
+  <div id="step2-container" class="step" *ngIf="stage === 'step2'" [@stepAnimation]>
+
+    <div id="step2-background"></div>
+
+    <form id="step2-form">
+
+      <!-- From name -->
+      <div class="input-group" id="from-group">
+        <label for="from">From:</label>
+        <input type="text" placeholder="[Your name]" id="from-input" name="from" title="Fill in your name" [(ngModel)]="formData.from">
+      </div>
+
+      <!-- To name -->
+      <div class="input-group" id="to-group">
+        <label for="to">To:</label>
+        <input type="text" placeholder="[Someone else's name]" id="to-input" name="to" title="Fill in someone else's name" [(ngModel)]="formData.to">
+      </div>
+
+      <!-- Message -->
+      <div class="input-group" id="message-group">
+        <label for="message">Message:</label>
+        <textarea name="message" id="message-input" cols="30" rows="10" placeholder="[Your message]" [(ngModel)]="formData.message"></textarea>
+      </div>
+
+      <!-- <button id="submit-btn" class="btn" type="submit" title="Click to choose a presave option">NEXT</button> -->
+
+
+    </form>
+
+  </div>
+
+  <div id="next-btn" class="btn" (click)="onContinue()">NEXT</div>
 
 
 </div>

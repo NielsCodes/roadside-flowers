@@ -5,169 +5,100 @@
   justify-content: center
   flex-direction: column
   min-height: -webkit-fill-available
-  background-image: url('../../assets/background.jpg')
-  background-position: center
-
-  #start-container
-    display: flex
-    flex-direction: column
-    align-items: center
-    justify-content: center
-    color: #fff
-    font-family: Arial, Helvetica, sans-serif
-    font-weigth: bold
-    padding: 40px
-    box-sizing: border-box
-    user-select: none
-
-    #cookie-container
-      text-align: center
-      margin-bottom: 20px
-
-      @media screen and (max-width: 600px)
-        font-size: .8em
-
-      #policy-link
-        cursor: pointer
-
-  #inputs-container
-    display: grid
-    grid-template-columns: repeat(4, 1fr)
-    grid-template-rows: 1fr 1fr .5fr
-    grid-column-gap: 40px
-    grid-row-gap: 40px
-    row-gap: 40px
-    column-gap: 40px
-    padding: 40px
-
-    #origin-group
-      grid-column-start: 1
-      grid-column-end: 3
-
-    #destination-group
-      grid-column-start: 3
-      grid-column-end: 5
-
-    #name-group
-      grid-column-start: 1
-      grid-column-end: 3
-      grid-row: 2
-
-    #email-group
-      grid-column-start: 3
-      grid-column-end: 5
-      grid-row: 2
-
-    #submit-btn
-      grid-column-start: 2
-      grid-column-end: 4
-      grid-row: 3
-      height: auto
-      text-align: center
-
-    .input-group
-      display: flex
-      flex-direction: column
-      color: #fff
-
-      label
-        margin-bottom: 5px
-        font-weight: bold
-        font-family: Arial, Helvetica, sans-serif
-        font-size: 1.4em
-
-      @media screen and (max-width: 600px)
-        font-size: 1em
-
-      input
-        border: 3px solid #fff
-        background: #6787ED
-        outline: none
-        color: #fff
-        padding: 10px 10px
-        font-size: 1.4em
-        border-radius: 0
-
-        &::placeholder
-          color: #fff
-
-        @media screen and (max-width: 600px)
-          font-size: 1em
-
-  &.vertical
-    transition: background-size 1s ease-out
-
-    #start-container
-      margin-top: -20px
-
-    #inputs-container
-      display: flex
-      flex-direction: column
-      row-gap: 0
-      padding: 40px
-      margin-top: -40px
-      width: 100%
-      box-sizing: border-box
-      opacity: 0
-      animation: .1s fadein 1s linear forwards
-
-      .input-group
-        margin: 10px 0
-
-      #submit-btn
-        margin-top: 20px
-
-
-#presave-options-container
   color: #fff
-  font-family: Arial, Helvetica, sans-serif
-  font-size: 1.4em
-  font-weight: bold
-  display: grid
-  grid-auto-columns: repeat(4, 1fr)
-  grid-template-rows: 20px 1fr
-  grid-column-gap: 40px
-  grid-row-gap: 40px
-  padding: 40px
-  box-sizing: border-box
+  font-family: 'bQSUfYhuCn5q'
 
-  #presave-option-title
-    grid-column-start: 1
-    grid-column-end: 5
-    grid-row: 1
-    text-align: center
+  .step
+    position: absolute
+    top: 0
+    left: 0
+    width: 100%
+    height: 100%
+    background-size: cover
+    background-position: center
 
-  .save-option
-    grid-row: 2
-    text-align: center
+    &#step1-container
+      background-image: url('../../assets/step1-min.jpg')
 
-    img
-      cursor: pointer
-      height: 100px
-      width: 100px
+    &#step2-container
+      display: flex
+      align-items: center
+      justify-content: center
 
-    .save-btn
-      margin-top: 20px
-      outline: none
-      -webkit-tap-highlight-color: none
-      border: 2px solid #fff
-      background: #6787ED
-      color: #fff
-      padding: 8px 12px
-      font-family: Arial, Helvetica, sans-serif
-      font-size: .7em
-      font-weight: bold
-      cursor: pointer
-      user-select: none
+      #step2-background
+        position: absolute
+        top: 10px
+        left: 10px
+        height: calc(100% - 20px)
+        width: calc(100% - 20px)
+        background-size: cover
+        background-position: center
+        background-image: url('../../assets/step2-min.jpg')
+        border-radius: 20px
 
-  #spotify-option
-    grid-column-start: 1
-    grid-column-end: 3
-    text-align: center
+      #step2-form
+        z-index: 20
+        display: grid
+        grid-template-rows: 2
+        grid-template-columns: 2
+        grid-row-gap: 40px
+        grid-column-gap: 40px
 
-  #apple-option
-    grid-column-start: 3
-    grid-column-end: 5
+        .input-group
+          display: flex
+          flex-direction: column
+
+          label
+            margin-bottom: 4px
+
+          input, textarea
+            background: none
+            border: 2px solid #fff
+            padding: 5px 10px
+            color: #fff
+            font-size: 16px
+            outline: none
+            -webkit-tap-highlight-color: none
+            font-family: 'bQSUfYhuCn5q'
+
+            &::placeholder
+              color: #eee
+
+        #from-group
+          grid-row: 1
+          grid-column: 1
+
+        #to-group
+          grid-row: 1
+          grid-column: 2
+
+        #message-group
+          grid-row: 2
+          grid-column-start: 1
+          grid-column-end: 3
+
+  #next-btn
+    position: absolute
+    bottom: 100px
+    right: 100px
+
+
+
+.btn
+  border: 2px solid #fff
+  padding: 10px 20px
+  user-select: none
+  -webkit-tap-highlight-color: none
+  cursor: pointer
+  transition: all .2s ease
+  font-size: 16px
+  background: none
+  color: #fff
+  font-family: 'bQSUfYhuCn5q'
+
+  &:hover
+    background: #fff
+    color: #000
 
 #policy-container
   position: absolute

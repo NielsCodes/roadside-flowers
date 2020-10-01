@@ -1,3 +1,4 @@
+import { stepAnimation } from './home.animations';
 import { CookieService } from './../services/cookie.service';
 import { environment } from './../../environments/environment';
 import { ApiService } from './../services/api.service';
@@ -20,15 +21,17 @@ declare var MusicKit: any;
 
       transition(':enter', [
         style({ opacity: 0 }),
-        animate('.2s ease', style({ opacity: 1 }))
+        animate('10s ease', style({ opacity: 1 }))
       ]),
 
       transition(':leave', [
         style({ opacity: 1 }),
-        animate('.2s ease', style({ opacity: 0 }))
+        animate('10s ease', style({ opacity: 0 }))
       ]),
 
-    ])
+    ]),
+
+    stepAnimation
 
   ]
 })
@@ -42,13 +45,12 @@ export class HomeComponent {
   isVertical: boolean;
 
   formData = {
-    origin: '',
-    destination: '',
-    name: '',
-    email: ''
+    from: '',
+    to: '',
+    message: ''
   };
 
-  stage = '';
+  stage = 'step2';
   showPolicy = false;
 
   private dataId: string;
@@ -99,9 +101,9 @@ export class HomeComponent {
     const isMobile = this.isMobileOrTablet();
 
     const backgroundImg = new Image();
-    backgroundImg.src = '../../assets/background.jpg';
+    backgroundImg.src = '../../assets/step1-min.jpg';
     backgroundImg.onload = () => {
-      this.stage = 'start';
+      // this.stage = 'step1';
     };
 
     const spotifyImg = new Image();
@@ -129,7 +131,7 @@ export class HomeComponent {
     const rootUrl = 'https://accounts.spotify.com/authorize';
     const clientID = 'e927df0934d7411181641fbd99a56f3c';
     const redirectURL = environment.redirect;
-    const scope = 'user-library-modify user-read-private user-follow-modify';
+    const scope = 'user-library-modify user-read-private user-follow-modify user-read-email';
     const state = `spotify_${this.dataId}`;
 
     // tslint:disable-next-line: max-line-length
@@ -200,6 +202,22 @@ export class HomeComponent {
 
   onHidePolicy() {
     this.showPolicy = false;
+  }
+
+  onContinue() {
+
+    let nextStage;
+
+    switch (this.stage) {
+      case 'step1':
+        nextStage = 'step2';
+        break;
+      default:
+        break;
+    }
+
+    this.stage = nextStage;
+
   }
 
 }
