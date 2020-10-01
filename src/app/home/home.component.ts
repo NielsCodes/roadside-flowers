@@ -31,7 +31,7 @@ declare var MusicKit: any;
 
     ]),
 
-    stepAnimation
+    stepAnimation,
 
   ]
 })
@@ -50,7 +50,7 @@ export class HomeComponent {
     message: ''
   };
 
-  stage = 'step2';
+  stage = '';
   showPolicy = false;
 
   private dataId: string;
@@ -103,7 +103,7 @@ export class HomeComponent {
     const backgroundImg = new Image();
     backgroundImg.src = '../../assets/step1-min.jpg';
     backgroundImg.onload = () => {
-      // this.stage = 'step1';
+      this.stage = 'step1';
     };
 
     const spotifyImg = new Image();
@@ -206,18 +206,37 @@ export class HomeComponent {
 
   onContinue() {
 
-    let nextStage;
+    let nextStage = this.stage;
 
     switch (this.stage) {
       case 'step1':
         nextStage = 'step2';
+        console.log('stage: 1 --> 2');
+        break;
+      case 'step2':
+        nextStage = 'step3';
+        console.log('stage: 2 --> 3');
+        break;
+      case 'step3':
+        nextStage = 'step4';
+        console.log('stage: 3 --> 4');
         break;
       default:
+        console.log('stage stable');
         break;
     }
 
     this.stage = nextStage;
 
+  }
+
+  /** Remove double line breaks from text */
+  stripNewlines(message: string): string {
+    return message.replace(/[\n]{2,}/g, '\n');
+  }
+
+  test() {
+    console.log(this.stripNewlines(this.formData.message));
   }
 
 }

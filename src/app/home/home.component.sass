@@ -7,6 +7,7 @@
   min-height: -webkit-fill-available
   color: #fff
   font-family: 'bQSUfYhuCn5q'
+  background: linear-gradient(0deg, rgba(229,89,5,1) 0%, rgba(205,221,235,1) 60%, rgba(205,221,235,1) 100%)
 
   .step
     position: absolute
@@ -17,52 +18,69 @@
     background-size: cover
     background-position: center
 
-    &#step1-container
+    &#start-container
       background-image: url('../../assets/step1-min.jpg')
 
-    &#step2-container
+    &#form-container
       display: flex
       align-items: center
       justify-content: center
 
-      #step2-background
+      #form-background
         position: absolute
-        top: 10px
-        left: 10px
-        height: calc(100% - 20px)
-        width: calc(100% - 20px)
+        // top: 10px
+        // left: 10px
+        // height: calc(100% - 20px)
+        // width: calc(100% - 20px)
+        // border-radius: 20px
+        top: 0
+        left: 0
+        height: 100%
+        width: 100%
         background-size: cover
         background-position: center
         background-image: url('../../assets/step2-min.jpg')
-        border-radius: 20px
 
-      #step2-form
-        z-index: 20
-        display: grid
-        grid-template-rows: 2
-        grid-template-columns: 2
-        grid-row-gap: 40px
-        grid-column-gap: 40px
+      #overlay
+        position: absolute
+        top: 0
+        left: 0
+        width: 100%
+        height: 100%
+        background: rgba(0,0,0,.2)
+        backdrop-filter: blur(10px)
 
-        .input-group
-          display: flex
-          flex-direction: column
+        #content-form
+          z-index: 20
+          display: grid
+          grid-template-rows: 2
+          grid-template-columns: 2
+          grid-row-gap: 40px
+          grid-column-gap: 40px
 
-          label
-            margin-bottom: 4px
+          .input-group
+            display: flex
+            flex-direction: column
 
-          input, textarea
-            background: none
-            border: 2px solid #fff
-            padding: 5px 10px
-            color: #fff
-            font-size: 16px
-            outline: none
-            -webkit-tap-highlight-color: none
-            font-family: 'bQSUfYhuCn5q'
+            label
+              margin-bottom: 4px
 
-            &::placeholder
-              color: #eee
+            input, textarea
+              background: none
+              border: 2px solid #fff
+              padding: 5px 10px
+              color: #fff
+              font-size: 16px
+              outline: none
+              -webkit-tap-highlight-color: none
+              font-family: 'bQSUfYhuCn5q'
+
+              &::placeholder
+                color: #eee
+
+            textarea
+              padding: 10px 10px !important
+              resize: none
 
         #from-group
           grid-row: 1
@@ -76,6 +94,57 @@
           grid-row: 2
           grid-column-start: 1
           grid-column-end: 3
+
+      .overlay-content-container
+        position: absolute
+        top: 0
+        left: 0
+        height: 100%
+        width: 100%
+        display: flex
+        align-items: center
+        justify-content: center
+
+      #presave-wrapper
+        z-index: 21
+        display: grid
+        grid-template-rows: 3
+        grid-template-columns: 4
+        row-gap: 40px
+        column-gap: 80px
+
+        #presave-title
+          grid-row: 1
+          grid-column-start: 1
+          grid-column-end: 5
+          text-align: center
+
+        .save-option
+          display: flex
+          flex-direction: column
+          justify-content: center
+          align-items: center
+          user-select: none
+          cursor: pointer
+
+          img
+            height: 200px
+            width: 200px
+
+          .save-btn
+            display: inline-table
+            margin-top: 40px
+
+        #spotify-option
+          grid-row: 2
+          grid-column-start: 1
+          grid-column-end: 3
+
+        #apple-option
+          grid-row: 2
+          grid-column-start: 3
+          grid-column-end: 5
+
 
   #next-btn
     position: absolute
@@ -95,6 +164,7 @@
   background: none
   color: #fff
   font-family: 'bQSUfYhuCn5q'
+  position: relative
 
   &:hover
     background: #fff

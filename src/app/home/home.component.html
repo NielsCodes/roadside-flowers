@@ -107,46 +107,76 @@
 
 </div> -->
 
-<div id="page-container" [style.height.px]="windowHeight">
+<div id="page-container" [style.height.px]="windowHeight" [@stepAnimation]="stage">
 
 
-  <div id="step1-container" class="step" *ngIf="stage === 'step1'" [@stepAnimation]>
+  <div id="start-container" class="step" *ngIf="stage === 'step1'">
+  </div>
+
+
+  <div id="form-container" class="step" *ngIf="stage === 'step2' || stage === 'step3' || stage === 'step4'">
+
+    <div id="form-background"></div>
+
+
+    <div id="overlay" *ngIf="stage === 'step3' || stage === 'step4'">
+
+      <div id="form-input-container" class="overlay-content-container">
+        <form id="content-form" class="overlay-item" *ngIf="stage === 'step3'">
+
+          <!-- From name -->
+          <div class="input-group" id="from-group">
+            <label for="from">From:</label>
+            <input type="text" placeholder="[Your name]" id="from-input" name="from" title="Fill in your name" [(ngModel)]="formData.from">
+          </div>
+
+          <!-- To name -->
+          <div class="input-group" id="to-group">
+            <label for="to">To:</label>
+            <input type="text" placeholder="[Someone else's name]" id="to-input" name="to" title="Fill in someone else's name" [(ngModel)]="formData.to">
+          </div>
+
+          <!-- Message -->
+          <div class="input-group" id="message-group">
+            <label for="message">Message:</label>
+            <textarea name="message" id="message-input" cols="30" rows="10" placeholder="[Your message]" maxLength="500" [(ngModel)]="formData.message"></textarea>
+            <span>{{ formData.message.length }}/500</span>
+          </div>
+
+
+          <button id="submit-btn" class="btn" type="submit" title="Click to choose a presave option" (click)="test()">NEXT</button>
+
+
+        </form>
+      </div>
+
+      <div id="presave-container" class="overlay-content-container">
+        <div id="presave-wrapper" class="overlay-item" *ngIf="stage === 'step4'">
+
+          <div id="presave-title">Choose an option</div>
+
+          <div class="save-option" id="spotify-option" (click)="onSpotifyLogin()">
+            <img src="../../assets/logos/spotify.png" alt="Spotify logo" rel="preload">
+            <div class="save-btn btn" id="spotify-save-btn">Pre-save on Spotify</div>
+          </div>
+
+          <div class="save-option" id="apple-option" (click)="onAppleLogin()">
+            <img src="../../assets/logos/apple.png" alt="Apple Music logo" rel="preload">
+            <div class="save-btn btn" id="spotify-save-btn">Pre-add on Apple Music</div>
+          </div>
+
+        </div>
+      </div>
+
+
+    </div>
+
 
   </div>
 
 
-  <div id="step2-container" class="step" *ngIf="stage === 'step2'" [@stepAnimation]>
 
-    <div id="step2-background"></div>
-
-    <form id="step2-form">
-
-      <!-- From name -->
-      <div class="input-group" id="from-group">
-        <label for="from">From:</label>
-        <input type="text" placeholder="[Your name]" id="from-input" name="from" title="Fill in your name" [(ngModel)]="formData.from">
-      </div>
-
-      <!-- To name -->
-      <div class="input-group" id="to-group">
-        <label for="to">To:</label>
-        <input type="text" placeholder="[Someone else's name]" id="to-input" name="to" title="Fill in someone else's name" [(ngModel)]="formData.to">
-      </div>
-
-      <!-- Message -->
-      <div class="input-group" id="message-group">
-        <label for="message">Message:</label>
-        <textarea name="message" id="message-input" cols="30" rows="10" placeholder="[Your message]" [(ngModel)]="formData.message"></textarea>
-      </div>
-
-      <!-- <button id="submit-btn" class="btn" type="submit" title="Click to choose a presave option">NEXT</button> -->
-
-
-    </form>
-
-  </div>
-
-  <div id="next-btn" class="btn" (click)="onContinue()">NEXT</div>
+  <div id="next-btn" class="btn" (click)="onContinue()" *ngIf="stage !== 'step4'">NEXT</div>
 
 
 </div>
