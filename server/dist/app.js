@@ -418,16 +418,14 @@ app.get('/secret', async (req, res) => {
     const { SecretManagerServiceClient } = require('@google-cloud/secret-manager');
     const name = 'projects/565477002562/secrets/test-secret/versions/latest';
     const client = new SecretManagerServiceClient();
-    async function accessSecretVersion() {
-        const [version] = await client.accessSecretVersion({
-            name,
-        });
-        // Extract the payload as a string.
-        const payload = version.payload.data.toString();
-        // WARNING: Do not print the secret in a production environment - this
-        // snippet is showing how to access the secret material.
-        res.send(payload);
-    }
+    const [version] = await client.accessSecretVersion({
+        name,
+    });
+    // Extract the payload as a string.
+    const payload = version.payload.data.toString();
+    // WARNING: Do not print the secret in a production environment - this
+    // snippet is showing how to access the secret material.
+    res.send(payload);
 });
 app.get('/auth/twitter', (req, res, next) => {
     /**

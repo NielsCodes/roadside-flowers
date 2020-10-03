@@ -510,18 +510,16 @@ app.get('/secret', async (req: Request, res: Response) => {
 
   const client = new SecretManagerServiceClient();
 
-  async function accessSecretVersion() {
-    const [version] = await client.accessSecretVersion({
-      name,
-    });
+  const [version] = await client.accessSecretVersion({
+    name,
+  });
 
-    // Extract the payload as a string.
-    const payload = version.payload.data.toString();
+  // Extract the payload as a string.
+  const payload = version.payload.data.toString();
 
-    // WARNING: Do not print the secret in a production environment - this
-    // snippet is showing how to access the secret material.
-    res.send(payload);
-  }
+  // WARNING: Do not print the secret in a production environment - this
+  // snippet is showing how to access the secret material.
+  res.send(payload);
 
 })
 
