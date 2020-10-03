@@ -64,22 +64,20 @@ export class ApiService {
 
   /**
    * Register ticket data on server and generate tickets
-   * @param name User defined name
-   * @param origin User defined origin location
-   * @param destination User defined destination location
-   * @param email User defined email address
-   * @param id Generated unique ID
+   * @param fromName UGC: 'From' name
+   * @param toName UGC: 'To' name
+   * @param message UGC: 'Message'
+   * @param id ID to link to back-end
    */
-  async registerData(name: string, origin: string, destination: string, email: string, id: string) {
+  async registerData(fromName: string, toName: string, message: string, id: string) {
 
     const endpoint = `${this.rootEndpoint}/register`;
 
     try {
       const res = await this.http.post<{success: boolean, message: string}>(endpoint, {
-        name,
-        origin,
-        destination,
-        email,
+        fromName,
+        toName,
+        message,
         id
       }).toPromise();
 
@@ -96,13 +94,13 @@ export class ApiService {
    * Download ticket
    * - Get file URLs from Google Cloud Storage by unique data ID
    */
-  async getTickets(dataId: string) {
+  async getPictures(dataId: string) {
 
     if (dataId === null) {
       throw Error('No valid data ID found');
     }
 
-    const endpoint = `${this.rootEndpoint}/tickets`;
+    const endpoint = `${this.rootEndpoint}/pictures`;
     try {
       const res = await this.http.get<{success: boolean, urls: { vertical: string, horizontal: string}}>(endpoint, {
         params: {
@@ -119,16 +117,16 @@ export class ApiService {
   }
 
   /** Download ticket files to devices from passed URLs */
-  async downloadTickets(verticalTicketURL: string, horizontalTicketURL: string) {
+  async downloadPictures(verticalPictureURL: string, horizontalPictureURL: string) {
 
     const blobPromises = [];
-    const verticalRes = this.http.get(verticalTicketURL, {
+    const verticalRes = this.http.get(verticalPictureURL, {
       responseType: 'arraybuffer',
       headers: new HttpHeaders({
         'Content-Type': 'image/jpeg'
       }),
     }).toPromise();
-    const horizontalRes = this.http.get(horizontalTicketURL, {
+    const horizontalRes = this.http.get(horizontalPictureURL, {
       responseType: 'arraybuffer',
       headers: new HttpHeaders({
         'Content-Type': 'image/jpeg'
@@ -139,8 +137,8 @@ export class ApiService {
     blobPromises.push(horizontalRes);
 
     const [ verticalBlob, horizontalBlob ] = await Promise.all(blobPromises);
-    this.downloadFile(horizontalBlob, 'DROELOE Railways 2020 16x9.jpg');
-    this.downloadFile(verticalBlob, 'DROELOE Railways 2020 9x16.jpg');
+    this.downloadFile(horizontalBlob, 'DROELOE 16x9.jpg');
+    this.downloadFile(verticalBlob, 'DROELOE 9x16.jpg');
 
   }
 

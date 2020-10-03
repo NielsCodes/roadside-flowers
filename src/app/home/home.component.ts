@@ -1,4 +1,4 @@
-import { stepAnimation } from './home.animations';
+import { stepAnimation, policyAnimation } from './home.animations';
 import { CookieService } from './../services/cookie.service';
 import { environment } from './../../environments/environment';
 import { ApiService } from './../services/api.service';
@@ -6,7 +6,6 @@ import { ScriptsService } from './../services/scripts.service';
 import { Component, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { NgForm } from '@angular/forms';
 import { trigger, transition, style, animate } from '@angular/animations';
 
 declare var MusicKit: any;
@@ -16,23 +15,8 @@ declare var MusicKit: any;
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.sass'],
   animations: [
-
-    trigger('policyAnimation', [
-
-      transition(':enter', [
-        style({ opacity: 0 }),
-        animate('10s ease', style({ opacity: 1 }))
-      ]),
-
-      transition(':leave', [
-        style({ opacity: 1 }),
-        animate('10s ease', style({ opacity: 0 }))
-      ]),
-
-    ]),
-
+    policyAnimation,
     stepAnimation,
-
   ]
 })
 export class HomeComponent {
@@ -106,30 +90,25 @@ export class HomeComponent {
 
     const isMobile = this.isMobileOrTablet();
 
-    // this.preloadedImages.backgroundImg = new Image();
+    // Preload images
     this.preloadedImages.backgroundImg.src = '../../assets/step1-min.jpg';
     this.preloadedImages.backgroundImg.onload = () => {
       this.stage = 'step1';
     };
 
-    // this.preloadedImages.backgroundImg2 = new Image();
-    this.preloadedImages.backgroundImg2.src = '../../assets/step2-min.png';
-
-    // this.preloadedImages.spotifyImg = new Image();
+    this.preloadedImages.backgroundImg2.src = '../../assets/step2-min.jpg';
     this.preloadedImages.spotifyImg.src = '../../assets/logos/messenger.png';
-
-    // this.preloadedImages.appleImg = new Image();
     this.preloadedImages.appleImg.src = '../../assets/logos/apple.png';
 
   }
 
-  async onSubmit(form: NgForm) {
+  async submitForm() {
 
-    const d = form.value;
+    const d = this.formData;
     this.dataId =  this.api.createDataID();
 
     this.stage = 'save';
-    await this.api.registerData(d.name, d.origin, d.destination, d.email, this.dataId);
+    await this.api.registerData(d.from, d.to, d.message, this.dataId);
 
   }
 
@@ -174,11 +153,6 @@ export class HomeComponent {
 
   }
 
-  onMessengerNotify() {
-    // TODO: Add new messenger flow
-    window.location.href = 'https://m.me/bitbirdofficial?ref=MGFSRHl1UlIrZWg1T291VGIvSmJQVTNnYW9FMEdrekFJMkFuT3dJaHhOND0tLVBrM2tSV1krM1ovdVVYWFozSll2OXc9PQ==--0309a911624ec92383e0f60877cd5bebff5ef041';
-  }
-
   private loginWithApple() {
     this.music.authorize().then((token: string) => {
       this.api.registerApplePresave(token);
@@ -194,10 +168,12 @@ export class HomeComponent {
   }
 
   onSpotifyListen() {
+    // TODO: Change to new link
     window.location.href = 'https://open.spotify.com/track/0cR04cbujsPTTyKUazySY0';
   }
 
   onAppleListen() {
+    // TODO: Change to new link
     window.location.href = 'https://music.apple.com/us/album/open-blinds-single/1521225746';
   }
 
@@ -239,6 +215,7 @@ export class HomeComponent {
           break;
         case 'step3':
           nextStage = 'step4';
+          this.submitForm();
           console.log('stage: 3 --> 4');
           break;
         default:

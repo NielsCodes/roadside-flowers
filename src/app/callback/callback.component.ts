@@ -213,7 +213,7 @@ export class CallbackComponent implements OnInit{
         this.dataId = localStorage.getItem('dataID');
       }
 
-      this.urls = await this.api.getTickets(this.dataId);
+      this.urls = await this.api.getPictures(this.dataId);
       this.stage = 'download';
 
     }
@@ -266,7 +266,7 @@ export class CallbackComponent implements OnInit{
   }
 
   async onDownload() {
-    await this.api.downloadTickets(this.urls.vertical, this.urls.horizontal);
+    await this.api.downloadPictures(this.urls.vertical, this.urls.horizontal);
     this.stage = 'share';
     fbq('trackCustom', 'ticketDownload');
     this.analytics.logEvent('ticketDownload');

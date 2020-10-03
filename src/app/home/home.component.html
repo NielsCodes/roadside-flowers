@@ -63,49 +63,7 @@
 </div> -->
 
 
-<!-- <div id="policy-container" *ngIf="showPolicy" [style.height.px]="windowHeight" [@policyAnimation]>
 
-  <div id="policy-content" [ngStyle]="{'max-height.px': windowHeight - 40}">
-
-    <div id="x-close-btn-container">
-      <div id="x-close-btn" (click)="onHidePolicy()">
-        &times;
-      </div>
-    </div>
-
-    <div id="custom-policy-text-wrapper">
-
-      <p>For the purposes of this presave, we ask for the following personal information:</p>
-
-      <br>
-      <br>
-
-      <b>Name</b>
-      <p>Your name will only be used to generate a personalized ticket, which you can download after presaving with either Spotify or Apple Music.</p>
-
-      <br>
-      <b>Email address</b>
-      <p>As part of this presave campaign, we might contact you via your email address. <br> Your email address will only be recorded for this purpose and will not be used for any marketing communications.</p>
-
-      <br>
-      <br>
-
-      <p>- Filling in your personal information is not mandatory for completing this presave.</p>
-      <br>
-      <p>- All personal data will be removed after the presave campaign ends</p>
-      <br>
-
-      <p>- All elements that are not specific to this presave campaign fall under the general <a href="https://bitbirdofficial.com/privacy" target="_blank" title="Open the bitbird privacy policy in a new tab">bitbird privacy policy</a>. </p>
-
-    </div>
-
-
-    <div id="close-btn" (click)="onHidePolicy()">I understand</div>
-
-  </div>
-
-
-</div> -->
 
 <div id="page-container" [style.height.px]="windowHeight" [@stepAnimation]="stage">
 
@@ -170,6 +128,60 @@
 
   </div>
 
-  <div id="next-btn" class="btn" (click)="onContinue()" *ngIf="(stage === 'step1' || stage === 'step3') && stage !== ''">NEXT</div>
+  <div id="next-btn" class="btn" (click)="onContinue()" *ngIf="stage === 'step3'">NEXT</div>
+  <div id="consent-message-container" *ngIf="stage === 'step1'">
+    <div id="consent-text-wrapper">
+      <h5 id="consent-message">We use cookies to ensure you get the best experience. <span></span></h5>
+      <h6 id="consent-policy-link" (click)="onShowPolicy()">Read our privacy policy <u>here</u></h6>
+    </div>
+    <div id="start-btn" class="btn" (click)="onContinue()">START</div>
+  </div>
+
+</div>
+
+
+<div id="policy-container" *ngIf="showPolicy" [style.height.px]="windowHeight" [@policyAnimation]>
+
+  <div id="policy-content" [ngStyle]="{'max-height.px': windowHeight - 40}">
+
+    <div id="x-close-btn-container">
+      <div id="x-close-btn" (click)="onHidePolicy()">
+        &times;
+      </div>
+    </div>
+
+    <div id="custom-policy-text-wrapper">
+
+      <p>For the purposes of this presave, we ask for the following personal information:</p>
+
+      <br>
+      <br>
+
+      <b>Name</b>
+      <p>Your name will only be used to generate a personalized picture, which you can download after presaving with either Spotify or Apple Music.</p>
+
+      <br>
+      <br>
+
+      <p>- Filling in your personal information is not mandatory for completing this presave.</p>
+      <br>
+      <p>- All personal data will be removed after the presave campaign ends.</p>
+      <br>
+
+      <p>- All elements that are not specific to this presave campaign fall under the general <a href="https://bitbirdofficial.com/privacy" target="_blank" title="Open the bitbird privacy policy in a new tab">bitbird privacy policy</a>. </p>
+
+      <br>
+      <br>
+
+      <b>Newsletter signup</b>
+      <p>After presaving with Spotify, you can opt-in for the DROELOE newsletter. This falls under the general <a href="https://bitbirdofficial.com/privacy" target="_blank" title="Open the bitbird privacy policy in a new tab">bitbird privacy policy</a>.</p>
+
+    </div>
+
+
+    <div id="close-btn" (click)="onHidePolicy()">I understand</div>
+
+  </div>
+
 
 </div>

@@ -18,7 +18,7 @@ import qs from 'qs';
 const storage = new Storage();
 const app: Application = express();
 const port = process.env.PORT || 8080;
-const apiVersion = '3.000';
+const apiVersion = '3.001';
 let bucket: Bucket;
 let twitter: Twitter;
 
@@ -358,18 +358,18 @@ app.post('/register', async (req: Request, res: Response) => {
     return;
   }
 
-  const from = req.body.from;
-  const to = req.body.to;
+  const fromName = req.body.fromName;
+  const toName = req.body.toName;
   const message = req.body.message;
   const id = req.body.id;
 
-  const params = [from, to, message, id];
+  const params = [fromName, toName, message, id];
   if (params.includes(undefined)) {
     res
       .status(400)
       .json({
         success: false,
-        message: `Missing request body item. Make sure you pass 'from', 'to', 'message' and 'id'`
+        message: `Missing request body item. Make sure you pass 'fromName', 'toName', 'message' and 'id'`
       })
       .send()
       .end();
@@ -483,8 +483,6 @@ const returnServerError = (error: Error, res: Response) => {
     .send();
 
 };
-
-
 
 /**
  * Get token and refresh tokens from Spotify with Authorization token

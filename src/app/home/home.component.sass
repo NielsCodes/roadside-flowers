@@ -151,6 +151,27 @@
     bottom: 100px
     right: 100px
 
+  #consent-message-container
+    position: absolute
+    bottom: 100px
+    right: 100px
+    display: flex
+    align-items: center
+
+    #consent-text-wrapper
+      text-align: right
+
+      #consent-message
+        font-weigth: normal
+        margin-bottom: 2px
+
+      #consent-policy-link
+        cursor: pointer
+        user-select: none
+
+    .btn
+      margin-left: 20px
+
 
 
 .btn
@@ -177,7 +198,7 @@
   width: 100vw
   background: rgba(0,0,0,.2)
   z-index: 20
-  backdrop-filter: blur(10px)
+  backdrop-filter: blur(20px)
   color: #fff
   font-family: Arial, Helvetica, sans-serif
   display: flex
@@ -188,11 +209,11 @@
   #policy-content
     padding: 40px
     padding-top: 20px
-    background: #6787ED
+    background: #ff8336
     border: 5px solid #fff
     margin: 20px
     box-sizing: border-box
-    overflow: scroll
+    overflow-y: auto
 
     a
       color: inherit
@@ -211,8 +232,8 @@
       outline: none
       -webkit-tap-highlight-color: none
       border: 3px solid #fff
-      background: #F3E25D
-      color: #6787ED
+      background: none
+      color: #fff
       padding: 8px 12px
       font-family: Arial, Helvetica, sans-serif
       font-weight: bold
@@ -220,6 +241,11 @@
       user-select: none
       margin-top: 40px
       display: inline-flex
+      transition: all .2s ease
+
+      &:hover
+        background: #fff
+        color: #ff8336
 
 .screen-btn
   outline: none
