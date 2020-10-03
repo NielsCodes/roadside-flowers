@@ -309,15 +309,15 @@ app.post('/register', async (req, res) => {
     // Log in Firestore
     const docRef = firebase_admin_1.default.firestore().collection('pictureData').doc();
     await docRef.create({
-        from,
-        to,
+        fromName,
+        toName,
         message,
         id,
         createdAt: firebase_admin_1.default.firestore.FieldValue.serverTimestamp()
     });
     // Create tickets
     // tslint:disable-next-line: max-line-length
-    const promises = [createVerticalImage(from, to, message, id), createHorizontalImage(from, to, message, id)];
+    const promises = [createVerticalImage(fromName, toName, message, id), createHorizontalImage(fromName, toName, message, id)];
     await statsRef.set({
         ticketsGenerated: increment
     }, { merge: true });
