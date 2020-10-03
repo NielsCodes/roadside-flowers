@@ -1,5 +1,35 @@
 <div id="page-container" [ngClass]="{'vertical': isVertical === true}" [style.height.px]="windowHeight">
 
+  <div id="output-container">
+
+    <div id="download-container">
+      <div id="download-btn" class="btn" (click)="onDownload()">DOWNLOAD</div>
+      <a id="download-fallback" [href]="urls?.vertical" title="Open picture in new window" target="_blank" [ngClass]="{'fallback-active': (fallbackActive && urls)}">Download didn't start? Click <u>here</u></a>
+    </div>
+
+
+    <div id="share-container">
+
+      <!-- <div id="share-title">Share with your friends</div> -->
+
+      <div id="share-options-wrapper">
+        <button class="share-option btn" id="share-twitter" (click)="onShareToTwitter()">Share on Twitter</button>
+        <button class="share-option btn" id="share-facebook" (click)="onShareToFacebook()">Share on Facebook</button>
+        <button class="share-option btn" id="share-any" *ngIf="canShare" (click)="onMobileShare()">Share elsewhere</button>
+        <button
+          class="share-option btn"
+          id="newsletter-consent"
+          (click)="onNewsletterConsent()"
+          *ngIf="referrer === 'spotify' && dataId"
+          [ngClass]="{'subscribed': subscribedToNewsletter, 'subscribing': isSubscribing}"
+          [attr.title]="subscribedToNewsletter ? 'Already subscribed' : 'Be informed of all news by subscribing to our newsletter'">Subscribe to our newsletter</button>
+      </div>
+
+    </div>
+
+
+  </div>
+
   <!-- <div id="output-container" *ngIf="stage === 'download'">
 
     <div id="output-title">Thank you. You can now download your tickets</div>

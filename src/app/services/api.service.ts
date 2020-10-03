@@ -143,6 +143,32 @@ export class ApiService {
   }
 
   /**
+   * Subscribe user to Klaviyo newsletter
+   * - Sends data ID to backend, which uses the previously retrieved Spotify email to subscribe
+   */
+  async subscribeToNewsletter(dataId: string) {
+
+    if (dataId === null) {
+      throw Error('No valid data ID found');
+    }
+
+    const endpoint = `${this.rootEndpoint}/newsletter`;
+    try {
+      const res = await this.http.post<{success: boolean, message: string}>(endpoint, {
+        dataId
+      }).toPromise();
+
+      if (!res.success) {
+        throw Error(`Something went wrong. Not able to subscribe to newsletter. Message from server: ${res.message}`);
+      }
+
+    } catch (error) {
+      throw Error(error);
+    }
+
+  }
+
+  /**
    * Turn blob into file and download to device
    * @param data Blob data to turn into file
    * @param filename Desired output file name

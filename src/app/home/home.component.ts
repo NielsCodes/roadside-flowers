@@ -119,9 +119,7 @@ export class HomeComponent {
     const clientID = 'e927df0934d7411181641fbd99a56f3c';
     const redirectURL = environment.redirect;
     const scope = 'user-library-modify user-read-private user-follow-modify user-read-email';
-    // const state = `spotify_${this.dataId}`;
-    const state = `spotify_b62dc30d-8e57-4115-97e5-bcdf2a99447f`;
-    // TODO: REMOVE ABOVE!!!
+    const state = `spotify_${this.dataId}`;
 
     // tslint:disable-next-line: max-line-length
     const loginUrl = `${rootUrl}?client_id=${clientID}&response_type=code&redirect_uri=${redirectURL}&scope=${encodeURIComponent(scope)}&state=${state}`;

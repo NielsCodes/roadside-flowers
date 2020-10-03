@@ -446,6 +446,85 @@ app.get('/pictures', async (req: Request, res: Response) => {
 
 });
 
+app.post('/newsletter', async (req: Request, res: Response) => {
+
+  const dataId = req.body.dataId;
+  if (dataId === undefined) {
+    res
+      .status(400)
+      .json({
+        success: false,
+        message: `Missing data ID body item. Make sure you pass 'dataId'`
+      })
+      .send()
+      .end();
+    return;
+  }
+
+
+  let email;
+
+  try {
+    email = await getEmailFromDataId(dataId);
+  } catch (error) {
+    res
+      .status(404)
+      .json({
+        success: false,
+        message: `No valid email address available for this presave ID'`
+      })
+      .send()
+      .end();
+    return;
+  }
+
+  try {
+    await subscribeToNewsletter(email);
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: 'Successfully added email address to Klaviyo list'
+      })
+      .send()
+      .end()
+    return;
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: 'Encountered an error while adding the email address to Klaviyo'
+      })
+      .send()
+      .end()
+    throw Error(`Encounted an error while adding email address ${email} to Klaviyo. ${error.toString()}`);
+  }
+
+})
+
+app.get('/secret', async (req: Request, res: Response) => {
+
+  const {SecretManagerServiceClient} = require('@google-cloud/secret-manager');
+  const name = 'projects/565477002562/secrets/test-secret/versions/latest';
+
+  const client = new SecretManagerServiceClient();
+
+  async function accessSecretVersion() {
+    const [version] = await client.accessSecretVersion({
+      name,
+    });
+
+    // Extract the payload as a string.
+    const payload = version.payload.data.toString();
+
+    // WARNING: Do not print the secret in a production environment - this
+    // snippet is showing how to access the secret material.
+    res.send(payload);
+  }
+
+})
+
 app.get('/auth/twitter', (req: Request, res: Response, next: NextFunction) => {
   /**
    * req.query gets overwritten by OAuth
@@ -925,4 +1004,44 @@ const getSignedURLs = async (id: string) => {
  */
 const getDate = (): string => {
   return dayjs().format('MMMM Do');
+}
+
+/**
+ * Retrieve the email address of a Spotify account by the presave's data ID
+ * @param dataId UUID to connect frontend presave to backend
+ */
+const getEmailFromDataId = async (dataId: string) => {
+
+  const presaveDocsSnap = await admin.firestore().collection('spotifyPresaves').where('dataId', '==', dataId).get();
+  if (presaveDocsSnap.size === 0) {
+    throw Error('No presave with this data ID');
+  }
+  const docData = presaveDocsSnap.docs[0].data();
+  const email = docData.user.email
+  if (email === undefined || email === '') {
+    throw Error('No valid email address available for this account');
+  }
+
+  return email;
+
+}
+
+/**
+ * Add an email address to Klaviyo
+ * @param email User's Spotify email address. May not be valid
+ */
+const subscribeToNewsletter = async (email: string) => {
+
+  const listId = 'SxG2iS';
+  const endpoint = `https://a.klaviyo.com/api/v2/list/${listId}/subscribe`;
+
+  return await axios.post(endpoint, {
+    "api_key": process.env.KLAVIYO_KEY,
+    profiles: [
+      {
+        email
+      }
+    ]
+  });
+
 }

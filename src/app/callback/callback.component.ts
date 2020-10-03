@@ -69,6 +69,10 @@ export class CallbackComponent implements OnInit{
   windowWidth: number;
   dataId: string;
   isVertical: boolean;
+  fallbackActive = false;
+  test = true;
+  subscribedToNewsletter = false;
+  isSubscribing = false;
   private rootEndpoint = environment.endpoint;
   private popupReference;
 
@@ -266,10 +270,22 @@ export class CallbackComponent implements OnInit{
   }
 
   async onDownload() {
+    this.fallbackActive = true;
     await this.api.downloadPictures(this.urls.vertical, this.urls.horizontal);
     this.stage = 'share';
     fbq('trackCustom', 'ticketDownload');
     this.analytics.logEvent('ticketDownload');
+  }
+
+  async onNewsletterConsent() {
+    this.isSubscribing = true;
+    try {
+      await this.api.subscribeToNewsletter(this.dataId);
+      this.subscribedToNewsletter = true;
+    } catch (error) {
+      console.error(error);
+    }
+    this.isSubscribing = false;
   }
 
 }
