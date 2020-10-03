@@ -3,14 +3,17 @@ import express, { Response, Request, Application, NextFunction } from 'express';
 import { createCanvas, loadImage, registerFont } from 'canvas';
 import { Storage, Bucket } from '@google-cloud/storage';
 import { Strategy as TwitterStrategy } from 'passport-twitter';
-import Twitter from 'twitter';
+import advancedFormat from 'dayjs/plugin/advancedFormat';
+import drawMultilineText from 'canvas-multiline-text';
 import admin from 'firebase-admin';
-import axios from 'axios';
 import passport from 'passport';
+import jwt from 'jsonwebtoken';
+import Twitter from 'twitter';
+import dayjs from 'dayjs';
+import axios from 'axios';
+import cors from 'cors';
 import fs from 'fs';
 import qs from 'qs';
-import cors from 'cors';
-import jwt from 'jsonwebtoken';
 
 const storage = new Storage();
 const app: Application = express();
@@ -18,6 +21,8 @@ const port = process.env.PORT || 8080;
 const apiVersion = '3.000';
 let bucket: Bucket;
 let twitter: Twitter;
+
+dayjs.extend(advancedFormat);
 
 if (process.env.ENV !== 'prod' && process.env.ENV !== 'dev'){
   require('dotenv').config();
@@ -353,19 +358,18 @@ app.post('/register', async (req: Request, res: Response) => {
     return;
   }
 
-  const name = req.body.name;
-  const origin = req.body.origin;
-  const destination = req.body.destination;
+  const from = req.body.from;
+  const to = req.body.to;
+  const message = req.body.message;
   const id = req.body.id;
-  const email = req.body.email;
 
-  const params = [name, origin, destination, id, email];
+  const params = [from, to, message, id];
   if (params.includes(undefined)) {
     res
       .status(400)
       .json({
         success: false,
-        message: `Missing request body item. Make sure you pass 'name', 'origin', 'destination', 'email' and 'id'`
+        message: `Missing request body item. Make sure you pass 'from', 'to', 'message' and 'id'`
       })
       .send()
       .end();
@@ -373,23 +377,18 @@ app.post('/register', async (req: Request, res: Response) => {
   }
 
   // Log in Firestore
-  const docRef = admin.firestore().collection('ticketData').doc();
+  const docRef = admin.firestore().collection('pictureData').doc();
   await docRef.create({
-    name,
-    origin,
-    destination,
-    email,
+    from,
+    to,
+    message,
     id,
     createdAt: admin.firestore.FieldValue.serverTimestamp()
   });
 
-  const statsSnapshot = await statsRef.get();
-  const ticketsGenerated = statsSnapshot.data()?.ticketsGenerated;
-  const ticketId = ticketsGenerated + 1
-
   // Create tickets
   // tslint:disable-next-line: max-line-length
-  const promises = [ createVerticalImage(name, origin, destination, ticketId, id), createHorizontalImage(name, origin, destination, ticketId, id) ];
+  const promises = [ createVerticalImage(from, to, message, id), createHorizontalImage(from, to, message, id) ];
 
   await statsRef.set({
     ticketsGenerated: increment
@@ -401,13 +400,13 @@ app.post('/register', async (req: Request, res: Response) => {
     .status(200)
     .json({
       success: true,
-      message: `Tickets generated with ID ${id}`
+      message: `Pictures generated with ID ${id}`
     })
     .send();
 
 });
 
-app.get('/tickets', async (req: Request, res: Response) => {
+app.get('/pictures', async (req: Request, res: Response) => {
 
   const id = req.query.id as string;
 
@@ -459,7 +458,6 @@ app.get('/auth/twitter', (req: Request, res: Response, next: NextFunction) => {
 app.get('/oauth/callback', passport.authenticate('twitter'), (req: Request, res: Response) => {
   res.send('<script>window.close()</script>');
 })
-
 
 // Start listening on defined port
 app.listen(port, () => console.log(`🚀 Server listening on port ${port}`));
@@ -739,132 +737,71 @@ const getAppleLocalization = async (userToken: string, devToken: string) => {
 
 };
 
-
 /**
- * Get a new Spotify access token by using a refresh token
- * @param refreshToken Spotify refresh token from Firestore
- * @returns New access information
- */
-const getSpotifyTokenFromRefresh = async (refreshToken: string): Promise<SpotifyAuthorizationData | null> => {
-
-  const endpoint = 'https://accounts.spotify.com/api/token';
-  // const redirectUrl = process.env.REDIRECT_URL;
-
-  // Encode API credentials
-  const credentials = `${process.env.CLIENT_ID}:${process.env.CLIENT_SECRET}`;
-  const authorization = Buffer.from(credentials).toString('base64');
-
-  // Create request body
-  const requestBody = qs.stringify({
-    grant_type: 'refresh_token',
-    refresh_token: refreshToken,
-  });
-
-  // Try calling the Spotify API
-  try {
-
-    const tokenRes = await axios.post(endpoint, requestBody, {
-      headers: {
-        Authorization: `Basic ${authorization}`
-      }
-    });
-
-    return tokenRes.data as SpotifyAuthorizationData;
-
-  } catch (error) {
-
-    if (error.response.status === 400) {
-      console.log('Invalid client error');
-      return null;
-    } else {
-      console.error(error);
-    }
-  }
-
-  return null;
-
-};
-
-
-/**
- * Update Apple presave document when the track has been saved to the user's library
- * @param documentId Firestore document ID of presave entry
- */
-const logAppleSave = async (documentId: string): Promise<boolean> => {
-
-  let success = false;
-
-  const docRef = admin.firestore().collection('applePresaves').doc(documentId);
-
-  try {
-    await docRef.set({ hasSaved: true }, { merge: true });
-    success = true;
-  } catch (error) {
-    console.log('Error while trying to log Apple save');
-    console.error(error);
-  }
-
-  return success;
-
-};
-
-/**
- * Create a vertical ticket with user defined variables
+ * Create a vertical picture with user defined variables
  *
  * Creates canvas with background image with variables overlaid
  *
  * Uploads the file to Google Cloud Storage and retrieves a signed URL for download
  *
- * @param name UGC: Name of user
- * @param departing UGC: Departing location of user
- * @param destination UGC: Destination location of user
- * @param index nth presave
+ * @param fromName UGC: 'From' name
+ * @param toName UGC: 'To' name
+ * @param message UGC: 'Message'
  * @param id ID to link to front-end
  */
-const createVerticalImage = async (name: string, departing: string, destination: string, index: number, id: string) => {
+const createVerticalImage = async (fromName: string, toName: string, message: string, id: string) => {
 
-  const backColor = '#232323';
-  const textColor = '#E9E7DA';
-
-  const canvas = createCanvas(1080, 1920);
+  registerFont(`./assets/ernie.ttf`, { family: 'Ernie' });
+  const canvas = createCanvas(1080, 1929);
   const ctx = canvas.getContext('2d');
 
-  registerFont(`./assets/Ticketing.ttf`, { family: 'Ticketing' });
-  const ticket = await loadImage('./assets/ticket-vertical.jpg');
+  const picture = await loadImage('./assets/picture-vertical.jpg');
 
-  ctx.drawImage(ticket, 0, 0);
-  ctx.font = '52px Ticketing';
+  ctx.drawImage(picture, 0, 0);
+  ctx.font = '48px Ernie';
   ctx.textBaseline = 'top';
 
-  // DRAW NAME
-  const nameWidth = ctx.measureText(name).width;
-  ctx.fillStyle = backColor;
-  ctx.fillRect(246, 606, nameWidth, 44);
-  ctx.fillStyle = textColor;
-  ctx.fillText(name, 248, 600);
+  // DRAW 'TO' NAME
+  ctx.save();
+  ctx.rotate(-11 * Math.PI / 180);
+  ctx.fillText(`TO: ${toName}`, 130, 300);
+  ctx.restore();
 
-  // DRAW BARCODE
-  const barcode = createBarcode(index);
-  const barcodeWidth = ctx.measureText(barcode).width;
-  ctx.fillStyle = backColor;
-  ctx.fillRect(246, 1398, barcodeWidth, 44);
-  ctx.fillStyle = textColor;
-  ctx.fillText(barcode, 248, 1392);
+  // DRAW 'FROM' NAME
+  ctx.save();
+  ctx.rotate(-1 * Math.PI / 180);
+  ctx.fillText(`FROM: ${fromName}`, 425, 1300);
+  ctx.restore();
 
-  // DRAW DEPARTING
-  ctx.fillStyle = backColor;
-  ctx.fillText(departing, 246, 885);
+  // DRAW DATE
+  const currentDate = getDate();
+  ctx.save();
+  ctx.rotate(-1 * Math.PI / 180);
+  ctx.fillText(currentDate, 670, 1630);
+  ctx.restore();
 
-  // DRAW DESTINATION
-  ctx.fillStyle = backColor;
-  ctx.fillText(destination, 246, 1078);
+  // DRAW MESSAGE
+  ctx.save();
+  ctx.rotate(-8 * Math.PI / 180);
+  drawMultilineText(ctx, message, {
+    rect: {
+      x: 50,
+      y: 400,
+      width: 800,
+      height: 600
+    },
+    font: 'Ernie',
+    lineHeight: 1.4,
+    minFontSize: 48,
+    maxFontSize: 48
+  });
 
   const buffer = canvas.toBuffer('image/jpeg');
   const filename = `./output/vert-${id}.jpg`;
   fs.writeFileSync(filename, buffer);
 
   const res = await bucket.upload(filename, {
-    destination: `tickets/${id}/DROELOE-ticket-vertical.jpg`
+    destination: `pictures/${id}/DROELOE-picture-vertical.jpg`
   });
 
   fs.unlinkSync(filename);
@@ -874,59 +811,70 @@ const createVerticalImage = async (name: string, departing: string, destination:
 };
 
 /**
- * Create a vertical ticket with user defined variables
+ * Create a horizontal picture with user defined variables
  *
  * Creates canvas with background image with variables overlaid
  *
  * Uploads the file to Google Cloud Storage and retrieves a signed URL for download
  *
- * @param name UGC: Name of user
- * @param departing UGC: Departing location of user
- * @param destination UGC: Destination location of user
- * @param index nth presave
+ * @param fromName UGC: 'From' name
+ * @param toName UGC: 'To' name
+ * @param message UGC: 'Message'
  * @param id ID to link to front-end
  */
-const createHorizontalImage = async (name: string, departing: string, destination: string, index: number, id: string) => {
+const createHorizontalImage = async (fromName: string, toName: string, message: string, id: string) => {
 
-  const backColor = '#232323';
-  const textColor = '#597BE3';
-
+  registerFont(`./assets/ernie.ttf`, { family: 'Ernie' });
   const canvas = createCanvas(1920, 1080);
   const ctx = canvas.getContext('2d');
 
-  registerFont(`./assets/Ticketing.ttf`, { family: 'Ticketing' });
-  const ticket = await loadImage('./assets/ticket-horizontal.jpg');
+  const picture = await loadImage('./assets/picture-horizontal.jpg');
 
-  ctx.drawImage(ticket, 0, 0);
-  ctx.font = '52px Ticketing';
+  ctx.drawImage(picture, 0, 0);
+  ctx.font = '48px Ernie';
   ctx.textBaseline = 'top';
 
-  // DRAW NAME
-  const nameWidth = ctx.measureText(name).width;
-  ctx.fillStyle = backColor;
-  ctx.fillRect(780, 96, nameWidth, 44);
-  ctx.fillStyle = textColor;
-  ctx.fillText(name, 782, 90);
+  // DRAW 'TO' NAME
+  ctx.save();
+  ctx.rotate(-11 * Math.PI / 180);
+  ctx.fillText(`TO: ${toName}`, 262, 200, 200);
+  ctx.restore();
 
-  // DRAW BARCODE
-  const barcode = createBarcode(index);
-  ctx.fillStyle = backColor;
-  ctx.fillText(barcode, 505, 950);
+  // DRAW 'FROM' NAME
+  ctx.save();
+  ctx.rotate(-1 * Math.PI / 180);
+  ctx.fillText(`FROM: ${fromName}`, 1276, 662);
+  ctx.restore();
 
-  // DRAW DEPARTING
-  ctx.fillStyle = backColor;
-  ctx.fillText(departing, 505, 468);
+  // DRAW DATE
+  const currentDate = getDate();
+  ctx.save();
+  ctx.rotate(-1 * Math.PI / 180);
+  ctx.fillText(currentDate, 1500, 980);
+  ctx.restore();
 
-  // DRAW DESTINATION
-  ctx.fillStyle = backColor;
-  ctx.fillText(destination, 505, 668);
+  // DRAW MESSAGE
+  ctx.save();
+  ctx.rotate(-8 * Math.PI / 180);
+  drawMultilineText(ctx, message, {
+    rect: {
+      x: 100,
+      y: 300,
+      width: 1000,
+      height: 400
+    },
+    font: 'Ernie',
+    lineHeight: 1.4,
+    minFontSize: 48,
+    maxFontSize: 48
+  });
 
   const buffer = canvas.toBuffer('image/jpeg');
   const filename = `./output/hor-${id}.jpg`;
   fs.writeFileSync(filename, buffer);
 
   const res = await bucket.upload(filename, {
-    destination: `tickets/${id}/DROELOE-ticket-horizontal.jpg`
+    destination: `pictures/${id}/DROELOE-picture-horizontal.jpg`
   });
 
   fs.unlinkSync(filename);
@@ -945,9 +893,9 @@ const getSignedURLs = async (id: string) => {
   const urls: {vertical?: string, horizontal?: string} = {};
 
   try {
-    const [files] = await bucket.getFiles({ prefix: `tickets/${id}` });
+    const [files] = await bucket.getFiles({ prefix: `pictures/${id}` });
     if (files.length !== 2) {
-      throw Error(`Unable to find tickets with ID: ${id}`);
+      throw Error(`Unable to find pictures with ID: ${id}`);
     }
     for (const file of files) {
 
@@ -974,14 +922,9 @@ const getSignedURLs = async (id: string) => {
 };
 
 /**
- * Create barcode string from an ID
- * @param index ID at the end of the barcode
- * @returns Barcode string in 0000 0000 0000 0012 format
+ * Get date string in 'MMMM Do' format
+ * @example 'October 1st'
  */
-const createBarcode = (index: number) => {
-  const baseString = '0000000000000000';
-  const code = `${baseString}${index}`.slice(-16);
-  const elements = code.match(/.{4}/g);
-  // tslint:disable-next-line: no-non-null-assertion
-  return `${elements![0]} ${elements![1]} ${elements![2]} ${elements![3]}`;
-};
+const getDate = (): string => {
+  return dayjs().format('MMMM Do');
+}

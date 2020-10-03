@@ -127,7 +127,7 @@
           <!-- From name -->
           <div class="input-group" id="from-group">
             <label for="from">From:</label>
-            <input type="text" placeholder="[Your name]" id="from-input" name="from" title="Fill in your name" [(ngModel)]="formData.from">
+            <input type="text" placeholder="[Name]" id="from-input" name="from" title="Fill in your name" [(ngModel)]="formData.from">
           </div>
 
           <!-- To name -->
@@ -139,13 +139,9 @@
           <!-- Message -->
           <div class="input-group" id="message-group">
             <label for="message">Message:</label>
-            <textarea name="message" id="message-input" cols="30" rows="10" placeholder="[Your message]" maxLength="500" [(ngModel)]="formData.message"></textarea>
-            <span>{{ formData.message.length }}/500</span>
+            <textarea name="message" id="message-input" cols="30" rows="10" placeholder="[Your message]" maxLength="400" [(ngModel)]="formData.message" (keydown.enter)="onTextareaEnter($event)"></textarea>
+            <span>{{ formData.message.length }}/400</span>
           </div>
-
-
-          <button id="submit-btn" class="btn" type="submit" title="Click to choose a presave option" (click)="test()">NEXT</button>
-
 
         </form>
       </div>
@@ -174,9 +170,6 @@
 
   </div>
 
-
-
-  <div id="next-btn" class="btn" (click)="onContinue()" *ngIf="stage !== 'step4'">NEXT</div>
-
+  <div id="next-btn" class="btn" (click)="onContinue()" *ngIf="(stage === 'step1' || stage === 'step3') && stage !== ''">NEXT</div>
 
 </div>

@@ -11,7 +11,7 @@ const optional = { optional: true };
 export const stepAnimation =
   trigger('stepAnimation', [
 
-    // STEP 1 --> STEP 2
+    // STEP 2 --> STEP 3
     // - Change background
     // - Fade in form
     transition('step2 => step3', [

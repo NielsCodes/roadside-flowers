@@ -43,6 +43,12 @@ export class HomeComponent {
   windowHeight: number;
   windowWidth: number;
   isVertical: boolean;
+  preloadedImages = {
+    backgroundImg: new Image(),
+    backgroundImg2: new Image(),
+    spotifyImg: new Image(),
+    appleImg: new Image(),
+  };
 
   formData = {
     from: '',
@@ -100,18 +106,20 @@ export class HomeComponent {
 
     const isMobile = this.isMobileOrTablet();
 
-    const backgroundImg = new Image();
-    backgroundImg.src = '../../assets/step1-min.jpg';
-    backgroundImg.onload = () => {
+    // this.preloadedImages.backgroundImg = new Image();
+    this.preloadedImages.backgroundImg.src = '../../assets/step1-min.jpg';
+    this.preloadedImages.backgroundImg.onload = () => {
       this.stage = 'step1';
     };
 
-    const spotifyImg = new Image();
-    spotifyImg.src = '../../assets/logos/messenger.png';
+    // this.preloadedImages.backgroundImg2 = new Image();
+    this.preloadedImages.backgroundImg2.src = '../../assets/step2-min.png';
 
-    const appleImg = new Image();
-    appleImg.src = '../../assets/logos/apple.png';
+    // this.preloadedImages.spotifyImg = new Image();
+    this.preloadedImages.spotifyImg.src = '../../assets/logos/messenger.png';
 
+    // this.preloadedImages.appleImg = new Image();
+    this.preloadedImages.appleImg.src = '../../assets/logos/apple.png';
 
   }
 
@@ -132,7 +140,9 @@ export class HomeComponent {
     const clientID = 'e927df0934d7411181641fbd99a56f3c';
     const redirectURL = environment.redirect;
     const scope = 'user-library-modify user-read-private user-follow-modify user-read-email';
-    const state = `spotify_${this.dataId}`;
+    // const state = `spotify_${this.dataId}`;
+    const state = `spotify_b62dc30d-8e57-4115-97e5-bcdf2a99447f`;
+    // TODO: REMOVE ABOVE!!!
 
     // tslint:disable-next-line: max-line-length
     const loginUrl = `${rootUrl}?client_id=${clientID}&response_type=code&redirect_uri=${redirectURL}&scope=${encodeURIComponent(scope)}&state=${state}`;
@@ -208,25 +218,46 @@ export class HomeComponent {
 
     let nextStage = this.stage;
 
-    switch (this.stage) {
-      case 'step1':
-        nextStage = 'step2';
-        console.log('stage: 1 --> 2');
-        break;
-      case 'step2':
-        nextStage = 'step3';
-        console.log('stage: 2 --> 3');
-        break;
-      case 'step3':
-        nextStage = 'step4';
-        console.log('stage: 3 --> 4');
-        break;
-      default:
-        console.log('stage stable');
-        break;
+    console.log(`Second background loaded: ${this.preloadedImages.backgroundImg2.complete}`);
+
+    if (this.stage === 'step1') {
+
+      if (!this.preloadedImages.backgroundImg2.complete) {
+        this.preloadedImages.backgroundImg2.src = '../../assets/step2-min.png';
+        this.preloadedImages.backgroundImg2.onload = () => {
+          this.startIntro();
+        };
+      } else {
+        this.startIntro();
+      }
+
+    } else {
+      switch (this.stage) {
+        case 'step2':
+          nextStage = 'step3';
+          console.log('stage: 2 --> 3');
+          break;
+        case 'step3':
+          nextStage = 'step4';
+          console.log('stage: 3 --> 4');
+          break;
+        default:
+          console.log('stage stable');
+          break;
+      }
+
+      this.stage = nextStage;
     }
 
-    this.stage = nextStage;
+  }
+
+  /** Start timer to proceed through the first steps */
+  startIntro() {
+
+    this.stage = 'step2';
+    setTimeout(() => {
+      this.stage = 'step3';
+    }, 1000);
 
   }
 
@@ -235,8 +266,8 @@ export class HomeComponent {
     return message.replace(/[\n]{2,}/g, '\n');
   }
 
-  test() {
-    console.log(this.stripNewlines(this.formData.message));
+  onTextareaEnter(event: KeyboardEvent) {
+    event.preventDefault();
   }
 
 }
