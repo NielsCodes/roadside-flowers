@@ -436,7 +436,7 @@ app.get('/oauth/callback', passport_1.default.authenticate('twitter'), (req, res
       window.onBeforeUnload = function(event){
         window.opener.postMessage({ success: true }, '${targetOrigin}');
       }
-      window.opener.postMessage({ success: true }, '${targetOrigin}');
+      window.close();
     </script>`;
     res.send(script);
 });
@@ -450,7 +450,7 @@ app.get('/test', (req, res) => {
       window.onBeforeUnload = function(event){
         window.opener.postMessage({ success: true }, '${targetOrigin}');
       }
-      window.opener.postMessage({ success: true }, '${targetOrigin}');
+      window.close();
     </script>`;
     res.send(script);
 });
