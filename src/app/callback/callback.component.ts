@@ -269,6 +269,10 @@ export class CallbackComponent implements OnInit{
       this.popupReference.focus();
     }
 
+    window.addEventListener('message', (event) => {
+      console.log(event);
+    });
+
   }
 
   // Open share menu on mobile devices

@@ -517,12 +517,18 @@ app.get('/auth/twitter', (req: Request, res: Response, next: NextFunction) => {
 
 app.get('/oauth/callback', passport.authenticate('twitter'), (req: Request, res: Response) => {
 
+  let targetOrigin = '*';
+
+  if (process.env.ENV === 'prod'){
+    targetOrigin = 'https://presave.droeloe.com'
+  }
+
   const script = `
     <script>
       window.onBeforeUnload = function(event){
-        window.opener.test();
+        window.opener.postMessage({ success: true }, ${targetOrigin});
       }
-      window.opener.test()
+      window.opener.postMessage({ success: true }, ${targetOrigin});
     </script>`;
 
   res.send(script);

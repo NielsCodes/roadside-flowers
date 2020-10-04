@@ -427,12 +427,16 @@ app.get('/auth/twitter', (req, res, next) => {
     next();
 }, passport_1.default.authenticate('twitter'));
 app.get('/oauth/callback', passport_1.default.authenticate('twitter'), (req, res) => {
+    let targetOrigin = '*';
+    if (process.env.ENV === 'prod') {
+        targetOrigin = 'https://presave.droeloe.com';
+    }
     const script = `
     <script>
       window.onBeforeUnload = function(event){
-        window.opener.test();
+        window.opener.postMessage({ success: true }, ${targetOrigin});
       }
-      window.opener.test()
+      window.opener.postMessage({ success: true }, ${targetOrigin});
     </script>`;
     res.send(script);
 });
