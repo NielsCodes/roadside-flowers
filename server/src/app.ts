@@ -394,7 +394,7 @@ app.post('/register', async (req: Request, res: Response) => {
   const promises = [ createVerticalImage(fromName, toName, message, id), createHorizontalImage(fromName, toName, message, id) ];
 
   await statsRef.set({
-    ticketsGenerated: increment
+    picturesGenerated: increment
   }, { merge: true });
 
   await Promise.all(promises);
@@ -517,6 +517,62 @@ app.get('/auth/twitter', (req: Request, res: Response, next: NextFunction) => {
 app.get('/oauth/callback', passport.authenticate('twitter'), (req: Request, res: Response) => {
   res.send('<script>window.close()</script>');
 })
+
+app.post('/test', async (req: Request, res: Response) => {
+
+  if (req.body === undefined) {
+    res
+      .status(400)
+      .json({
+        success: false,
+        message: 'No request body passed'
+      })
+      .send()
+      .end();
+    console.error('Received request without body');
+    return;
+  }
+
+  const fromName = req.body.fromName;
+  const toName = req.body.toName;
+  const message = req.body.message;
+  const id = req.body.id;
+
+  const params = [fromName, toName, message, id];
+  if (params.includes(undefined)) {
+    res
+      .status(400)
+      .json({
+        success: false,
+        message: `Missing request body item. Make sure you pass 'fromName', 'toName', 'message' and 'id'`
+      })
+      .send()
+      .end();
+    console.error(`Received request with missing parameter. ${JSON.stringify(params)}`);
+    return;
+  }
+
+  // Create tickets
+  // tslint:disable-next-line: max-line-length
+  const promises = [ createVerticalImage(fromName, toName, message, id) ];
+
+  // await statsRef.set({
+  //   picturesGenerated: increment
+  // }, { merge: true });
+
+  await Promise.all(promises);
+
+  res
+    .status(200)
+    .json({
+      success: true,
+      message: `Pictures generated with ID ${id}`
+    })
+    .send();
+
+});
+
+
 
 // Start listening on defined port
 app.listen(port, () => console.log(`🚀 Server listening on port ${port}`));
@@ -676,7 +732,7 @@ const registerAuthCodeForExistingSpotifyPresave = async (id: string, authCode: s
   }, { merge: true })
 }
 
-/** Add auth code to an existing presave */
+/** Add data ID code to an existing presave */
 const registerDataIdForExistingSpotifyPresave = async (id: string, dataId: string) => {
 
   const presaveDocsSnap = await admin.firestore().collection('spotifyPresaves').where('user.id', '==', id).get();
@@ -810,31 +866,31 @@ const createVerticalImage = async (fromName: string, toName: string, message: st
 
   // DRAW 'TO' NAME
   ctx.save();
-  ctx.rotate(-11 * Math.PI / 180);
+  ctx.rotate(-10 * Math.PI / 180);
   ctx.fillText(`TO: ${toName}`, 130, 300);
   ctx.restore();
 
   // DRAW 'FROM' NAME
   ctx.save();
   ctx.rotate(-1 * Math.PI / 180);
-  ctx.fillText(`FROM: ${fromName}`, 425, 1300);
+  ctx.fillText(`FROM: ${fromName}`, 425, 1180);
   ctx.restore();
 
   // DRAW DATE
   const currentDate = getDate();
   ctx.save();
   ctx.rotate(-1 * Math.PI / 180);
-  ctx.fillText(currentDate, 670, 1630);
+  ctx.fillText(currentDate, 670, 1480);
   ctx.restore();
 
   // DRAW MESSAGE
   ctx.save();
-  ctx.rotate(-8 * Math.PI / 180);
+  ctx.rotate(-12 * Math.PI / 180);
   drawMultilineText(ctx, message, {
     rect: {
-      x: 50,
+      x: 30,
       y: 400,
-      width: 800,
+      width: 700,
       height: 600
     },
     font: 'Ernie',

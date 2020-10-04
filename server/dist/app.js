@@ -322,7 +322,7 @@ app.post('/register', async (req, res) => {
     // tslint:disable-next-line: max-line-length
     const promises = [createVerticalImage(fromName, toName, message, id), createHorizontalImage(fromName, toName, message, id)];
     await statsRef.set({
-        ticketsGenerated: increment
+        picturesGenerated: increment
     }, { merge: true });
     await Promise.all(promises);
     res
@@ -427,6 +427,51 @@ app.get('/auth/twitter', (req, res, next) => {
 }, passport_1.default.authenticate('twitter'));
 app.get('/oauth/callback', passport_1.default.authenticate('twitter'), (req, res) => {
     res.send('<script>window.close()</script>');
+});
+app.post('/test', async (req, res) => {
+    if (req.body === undefined) {
+        res
+            .status(400)
+            .json({
+            success: false,
+            message: 'No request body passed'
+        })
+            .send()
+            .end();
+        console.error('Received request without body');
+        return;
+    }
+    const fromName = req.body.fromName;
+    const toName = req.body.toName;
+    const message = req.body.message;
+    const id = req.body.id;
+    const params = [fromName, toName, message, id];
+    if (params.includes(undefined)) {
+        res
+            .status(400)
+            .json({
+            success: false,
+            message: `Missing request body item. Make sure you pass 'fromName', 'toName', 'message' and 'id'`
+        })
+            .send()
+            .end();
+        console.error(`Received request with missing parameter. ${JSON.stringify(params)}`);
+        return;
+    }
+    // Create tickets
+    // tslint:disable-next-line: max-line-length
+    const promises = [createVerticalImage(fromName, toName, message, id)];
+    // await statsRef.set({
+    //   picturesGenerated: increment
+    // }, { merge: true });
+    await Promise.all(promises);
+    res
+        .status(200)
+        .json({
+        success: true,
+        message: `Pictures generated with ID ${id}`
+    })
+        .send();
 });
 // Start listening on defined port
 app.listen(port, () => console.log(`🚀 Server listening on port ${port}`));
@@ -551,7 +596,7 @@ const registerAuthCodeForExistingSpotifyPresave = async (id, authCode) => {
         authCodes: firebase_admin_1.default.firestore.FieldValue.arrayUnion(authCode)
     }, { merge: true });
 };
-/** Add auth code to an existing presave */
+/** Add data ID code to an existing presave */
 const registerDataIdForExistingSpotifyPresave = async (id, dataId) => {
     const presaveDocsSnap = await firebase_admin_1.default.firestore().collection('spotifyPresaves').where('user.id', '==', id).get();
     const docId = presaveDocsSnap.docs[0].id;
@@ -654,28 +699,28 @@ const createVerticalImage = async (fromName, toName, message, id) => {
     ctx.textBaseline = 'top';
     // DRAW 'TO' NAME
     ctx.save();
-    ctx.rotate(-11 * Math.PI / 180);
+    ctx.rotate(-10 * Math.PI / 180);
     ctx.fillText(`TO: ${toName}`, 130, 300);
     ctx.restore();
     // DRAW 'FROM' NAME
     ctx.save();
     ctx.rotate(-1 * Math.PI / 180);
-    ctx.fillText(`FROM: ${fromName}`, 425, 1300);
+    ctx.fillText(`FROM: ${fromName}`, 425, 1180);
     ctx.restore();
     // DRAW DATE
     const currentDate = getDate();
     ctx.save();
     ctx.rotate(-1 * Math.PI / 180);
-    ctx.fillText(currentDate, 670, 1630);
+    ctx.fillText(currentDate, 670, 1480);
     ctx.restore();
     // DRAW MESSAGE
     ctx.save();
-    ctx.rotate(-8 * Math.PI / 180);
+    ctx.rotate(-12 * Math.PI / 180);
     canvas_multiline_text_1.default(ctx, message, {
         rect: {
-            x: 50,
+            x: 30,
             y: 400,
-            width: 800,
+            width: 700,
             height: 600
         },
         font: 'Ernie',
