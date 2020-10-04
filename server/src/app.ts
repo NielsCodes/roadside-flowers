@@ -355,6 +355,7 @@ app.post('/register', async (req: Request, res: Response) => {
       })
       .send()
       .end();
+    console.error('Received request without body');
     return;
   }
 
@@ -373,6 +374,7 @@ app.post('/register', async (req: Request, res: Response) => {
       })
       .send()
       .end();
+    console.error(`Received request with missing parameter. ${JSON.stringify(params)}`);
     return;
   }
 

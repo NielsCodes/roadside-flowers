@@ -288,6 +288,7 @@ app.post('/register', async (req, res) => {
         })
             .send()
             .end();
+        console.error('Received request without body');
         return;
     }
     const fromName = req.body.fromName;
@@ -304,6 +305,7 @@ app.post('/register', async (req, res) => {
         })
             .send()
             .end();
+        console.error(`Received request with missing parameter. ${JSON.stringify(params)}`);
         return;
     }
     // Log in Firestore

@@ -209,15 +209,12 @@ export class HomeComponent {
       switch (this.stage) {
         case 'step2':
           nextStage = 'step3';
-          console.log('stage: 2 --> 3');
           break;
         case 'step3':
           nextStage = 'step4';
           this.submitForm();
-          console.log('stage: 3 --> 4');
           break;
         default:
-          console.log('stage stable');
           break;
       }
 

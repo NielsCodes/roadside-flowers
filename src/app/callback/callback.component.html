@@ -2,7 +2,7 @@
 
   <div id="output-container">
 
-    <div id="download-container">
+    <div id="download-container" *ngIf="urls">
       <div id="download-btn" class="btn" (click)="onDownload()">DOWNLOAD</div>
       <a id="download-fallback" [href]="urls?.vertical" title="Open picture in new window" target="_blank" [ngClass]="{'fallback-active': (fallbackActive && urls)}">Download didn't start? Click <u>here</u></a>
     </div>

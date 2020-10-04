@@ -288,7 +288,7 @@ export class CallbackComponent implements OnInit{
   onMobileShare(): void {
 
     this.nav.share({
-      title: '🎟️',
+      title: '🌺',
       url: this.pageURL
     });
 

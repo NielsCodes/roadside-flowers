@@ -137,8 +137,8 @@ export class ApiService {
     blobPromises.push(horizontalRes);
 
     const [ verticalBlob, horizontalBlob ] = await Promise.all(blobPromises);
-    this.downloadFile(horizontalBlob, 'DROELOE 16x9.jpg');
-    this.downloadFile(verticalBlob, 'DROELOE 9x16.jpg');
+    this.downloadFile(horizontalBlob, 'DROELOE 16x9');
+    this.downloadFile(verticalBlob, 'DROELOE 9x16');
 
   }
 
