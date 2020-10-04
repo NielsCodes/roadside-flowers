@@ -518,14 +518,12 @@ app.get('/auth/twitter', (req: Request, res: Response, next: NextFunction) => {
 app.get('/oauth/callback', passport.authenticate('twitter'), (req: Request, res: Response) => {
 
   const script = `
-  <script>
-    window.onBeforeUnload = function(event){
-      window.opener.test();
+    <script>
+      window.onBeforeUnload = function(event){
+        window.opener.test();
+      }
       window.close();
-    }
-  </script>
-  `;
-
+    </script>`;
 
   res.send(script);
 })

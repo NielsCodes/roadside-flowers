@@ -428,13 +428,12 @@ app.get('/auth/twitter', (req, res, next) => {
 }, passport_1.default.authenticate('twitter'));
 app.get('/oauth/callback', passport_1.default.authenticate('twitter'), (req, res) => {
     const script = `
-  <script>
-    window.onBeforeUnload = function(event){
-      window.opener.test();
+    <script>
+      window.onBeforeUnload = function(event){
+        window.opener.test();
+      }
       window.close();
-    }
-  </script>
-  `;
+    </script>`;
     res.send(script);
 });
 // Start listening on defined port
