@@ -5,9 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const canvas_1 = require("canvas");
-const storage_1 = require("@google-cloud/storage");
 const passport_twitter_1 = require("passport-twitter");
 const advancedFormat_1 = __importDefault(require("dayjs/plugin/advancedFormat"));
+const storage_1 = require("@google-cloud/storage");
 const canvas_multiline_text_1 = __importDefault(require("canvas-multiline-text"));
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const passport_1 = __importDefault(require("passport"));
@@ -64,7 +64,7 @@ passport_1.default.use(new passport_twitter_1.Strategy({
     const fileData = fileDownload[0];
     twitter.post('media/upload', { media: fileData }, (error, media, response) => {
         if (!error) {
-            twitter.post('statuses/update', { status: `🎟️🎟️🎟️ @DROELOEMUSIC @bitbird https://presave.droeloe.com`, media_ids: media.media_id_string }, (tweetError, tweet, tweetResponse) => null);
+            twitter.post('statuses/update', { status: `🌺🌺🌺 @DROELOEMUSIC @bitbird https://presave.droeloe.com`, media_ids: media.media_id_string }, (tweetError, tweet, tweetResponse) => null);
         }
         else {
             throw Error(error);
@@ -135,6 +135,7 @@ app.post('/spotify', async (req, res) => {
         const firstPresave = await checkIfFirstSpotifySave(userData.id);
         if (!firstPresave) {
             await registerAuthCodeForExistingSpotifyPresave(userData.id, authCode);
+            await registerDataIdForExistingSpotifyPresave(userData.id, dataId);
             res
                 .status(200)
                 .json({
@@ -430,21 +431,6 @@ app.get('/oauth/callback', passport_1.default.authenticate('twitter'), (req, res
 // Start listening on defined port
 app.listen(port, () => console.log(`🚀 Server listening on port ${port}`));
 /**
- * Return server error
- * @param error Encountered error
- * @param res Response class of active route
- */
-const returnServerError = (error, res) => {
-    console.error(error);
-    res
-        .status(500)
-        .json({
-        success: false,
-        message: error
-    })
-        .send();
-};
-/**
  * Get token and refresh tokens from Spotify with Authorization token
  * @param code Authentication token to verify user with
  * @returns Object with user token, refresh token and scope
@@ -546,7 +532,7 @@ const registerSpotifyPresave = async (authData, userData, authCode, dataId = '')
         timestamp: firebase_admin_1.default.firestore.FieldValue.serverTimestamp(),
         hasSaved: false,
         authCodes: [authCode],
-        dataId
+        dataIds: [dataId]
     };
     const docRef = firebase_admin_1.default.firestore().collection('spotifyPresaves').doc();
     const batch = firebase_admin_1.default.firestore().batch();
@@ -563,6 +549,14 @@ const registerAuthCodeForExistingSpotifyPresave = async (id, authCode) => {
     const docId = presaveDocsSnap.docs[0].id;
     await firebase_admin_1.default.firestore().collection('spotifyPresaves').doc(docId).set({
         authCodes: firebase_admin_1.default.firestore.FieldValue.arrayUnion(authCode)
+    }, { merge: true });
+};
+/** Add auth code to an existing presave */
+const registerDataIdForExistingSpotifyPresave = async (id, dataId) => {
+    const presaveDocsSnap = await firebase_admin_1.default.firestore().collection('spotifyPresaves').where('user.id', '==', id).get();
+    const docId = presaveDocsSnap.docs[0].id;
+    await firebase_admin_1.default.firestore().collection('spotifyPresaves').doc(docId).set({
+        dataIds: firebase_admin_1.default.firestore.FieldValue.arrayUnion(dataId)
     }, { merge: true });
 };
 // Register Messenger signup in Firestore
@@ -803,7 +797,7 @@ const getDate = () => {
  * @param dataId UUID to connect frontend presave to backend
  */
 const getEmailFromDataId = async (dataId) => {
-    const presaveDocsSnap = await firebase_admin_1.default.firestore().collection('spotifyPresaves').where('dataId', '==', dataId).get();
+    const presaveDocsSnap = await firebase_admin_1.default.firestore().collection('spotifyPresaves').where('dataIds', 'array-contains', dataId).get();
     if (presaveDocsSnap.size === 0) {
         throw Error('No presave with this data ID');
     }

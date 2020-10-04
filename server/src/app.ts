@@ -1,9 +1,9 @@
 import { SpotifyAuthorizationData, SpotifyAuthorization, SpotifyUser } from './models';
 import express, { Response, Request, Application, NextFunction } from 'express';
 import { createCanvas, loadImage, registerFont } from 'canvas';
-import { Storage, Bucket } from '@google-cloud/storage';
 import { Strategy as TwitterStrategy } from 'passport-twitter';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
+import { Storage, Bucket } from '@google-cloud/storage';
 import drawMultilineText from 'canvas-multiline-text';
 import admin from 'firebase-admin';
 import passport from 'passport';
@@ -71,7 +71,7 @@ passport.use(new TwitterStrategy({
 
       if (!error) {
 
-        twitter.post('statuses/update', { status: `🎟️🎟️🎟️ @DROELOEMUSIC @bitbird https://presave.droeloe.com`, media_ids: media.media_id_string }, (tweetError: any, tweet: any, tweetResponse: any) => null);
+        twitter.post('statuses/update', { status: `🌺🌺🌺 @DROELOEMUSIC @bitbird https://presave.droeloe.com`, media_ids: media.media_id_string }, (tweetError: any, tweet: any, tweetResponse: any) => null);
 
 
       } else {
@@ -166,6 +166,7 @@ app.post('/spotify', async (req: Request, res: Response) => {
     if (!firstPresave) {
 
       await registerAuthCodeForExistingSpotifyPresave(userData.id, authCode)
+      await registerDataIdForExistingSpotifyPresave(userData.id, dataId);
 
       res
         .status(200)
@@ -445,7 +446,6 @@ app.get('/pictures', async (req: Request, res: Response) => {
       .send()
   }
 
-
 });
 
 app.post('/newsletter', async (req: Request, res: Response) => {
@@ -522,26 +522,6 @@ app.get('/oauth/callback', passport.authenticate('twitter'), (req: Request, res:
 app.listen(port, () => console.log(`🚀 Server listening on port ${port}`));
 
 
-
-
-/**
- * Return server error
- * @param error Encountered error
- * @param res Response class of active route
- */
-const returnServerError = (error: Error, res: Response) => {
-
-  console.error(error);
-
-  res
-    .status(500)
-    .json({
-      success: false,
-      message: error
-    })
-    .send();
-
-};
 
 /**
  * Get token and refresh tokens from Spotify with Authorization token
@@ -671,7 +651,7 @@ const registerSpotifyPresave = async (authData: SpotifyAuthorizationData, userDa
     timestamp: admin.firestore.FieldValue.serverTimestamp(),
     hasSaved: false,
     authCodes: [authCode],
-    dataId
+    dataIds: [dataId]
   };
 
   const docRef = admin.firestore().collection('spotifyPresaves').doc();
@@ -693,6 +673,16 @@ const registerAuthCodeForExistingSpotifyPresave = async (id: string, authCode: s
   const docId = presaveDocsSnap.docs[0].id;
   await admin.firestore().collection('spotifyPresaves').doc(docId).set({
     authCodes: admin.firestore.FieldValue.arrayUnion(authCode)
+  }, { merge: true })
+}
+
+/** Add auth code to an existing presave */
+const registerDataIdForExistingSpotifyPresave = async (id: string, dataId: string) => {
+
+  const presaveDocsSnap = await admin.firestore().collection('spotifyPresaves').where('user.id', '==', id).get();
+  const docId = presaveDocsSnap.docs[0].id;
+  await admin.firestore().collection('spotifyPresaves').doc(docId).set({
+    dataIds: admin.firestore.FieldValue.arrayUnion(dataId)
   }, { merge: true })
 }
 
@@ -992,7 +982,7 @@ const getDate = (): string => {
  */
 const getEmailFromDataId = async (dataId: string) => {
 
-  const presaveDocsSnap = await admin.firestore().collection('spotifyPresaves').where('dataId', '==', dataId).get();
+  const presaveDocsSnap = await admin.firestore().collection('spotifyPresaves').where('dataIds', 'array-contains', dataId).get();
   if (presaveDocsSnap.size === 0) {
     throw Error('No presave with this data ID');
   }
