@@ -64,7 +64,7 @@ passport.use(new TwitterStrategy({
       access_token_secret: tokenSecret
     })
 
-    const fileDownload = await bucket.file(`pictures/${req.session!.dataId}/DROELOE-ticket-horizontal.jpg`).download()
+    const fileDownload = await bucket.file(`pictures/${req.session!.dataId}/DROELOE-picture-horizontal.jpg`).download()
     const fileData = fileDownload[0];
 
     twitter.post('media/upload', { media: fileData }, (error: any, media: any, response: any) => {
