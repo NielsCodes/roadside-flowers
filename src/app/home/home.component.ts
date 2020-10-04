@@ -226,6 +226,7 @@ export class HomeComponent {
   /** Start timer to proceed through the first steps */
   startIntro() {
 
+    this.cookieService.setConsent();
     this.stage = 'step2';
     setTimeout(() => {
       this.stage = 'step3';
