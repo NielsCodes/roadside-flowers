@@ -434,9 +434,23 @@ app.get('/oauth/callback', passport_1.default.authenticate('twitter'), (req, res
     const script = `
     <script>
       window.onBeforeUnload = function(event){
-        window.opener.postMessage({ success: true }, ${targetOrigin});
+        window.opener.postMessage({ success: true }, '${targetOrigin}');
       }
-      window.opener.postMessage({ success: true }, ${targetOrigin});
+      window.opener.postMessage({ success: true }, '${targetOrigin}');
+    </script>`;
+    res.send(script);
+});
+app.get('/test', (req, res) => {
+    let targetOrigin = '*';
+    if (process.env.ENV === 'prod') {
+        targetOrigin = 'https://presave.droeloe.com';
+    }
+    const script = `
+    <script>
+      window.onBeforeUnload = function(event){
+        window.opener.postMessage({ success: true }, '${targetOrigin}');
+      }
+      window.opener.postMessage({ success: true }, '${targetOrigin}');
     </script>`;
     res.send(script);
 });
