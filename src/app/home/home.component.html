@@ -32,8 +32,8 @@
           <!-- Message -->
           <div class="input-group" id="message-group">
             <label for="message">Message:</label>
-            <textarea name="message" id="message-input" rows="10" placeholder="[Your message]" maxLength="400" [(ngModel)]="formData.message" (keydown.enter)="onTextareaEnter($event)"></textarea>
-            <span>{{ formData.message.length }}/400</span>
+            <textarea name="message" id="message-input" rows="10" placeholder="[Your message]" maxLength="300" [(ngModel)]="formData.message" (keydown.enter)="onTextareaEnter($event)"></textarea>
+            <span>{{ formData.message.length }}/300</span>
           </div>
 
         </form>
