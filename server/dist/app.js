@@ -64,7 +64,8 @@ passport_1.default.use(new passport_twitter_1.Strategy({
     const fileData = fileDownload[0];
     twitter.post('media/upload', { media: fileData }, (error, media, response) => {
         if (!error) {
-            twitter.post('statuses/update', { status: `🌺🌺🌺 @DROELOEMUSIC @bitbird https://presave.droeloe.com`, media_ids: media.media_id_string }, (tweetError, tweet, tweetResponse) => null);
+            // twitter.post('statuses/update', { status: `🌺🌺🌺 @DROELOEMUSIC @bitbird https://presave.droeloe.com`, media_ids: media.media_id_string }, (tweetError: any, tweet: any, tweetResponse: any) => null);
+            twitter.post('statuses/update', { status: `🌺🌺🌺`, media_ids: media.media_id_string }, (tweetError, tweet, tweetResponse) => null);
         }
         else {
             throw Error(error);
@@ -426,52 +427,15 @@ app.get('/auth/twitter', (req, res, next) => {
     next();
 }, passport_1.default.authenticate('twitter'));
 app.get('/oauth/callback', passport_1.default.authenticate('twitter'), (req, res) => {
-    res.send('<script>window.close()</script>');
-});
-app.post('/test', async (req, res) => {
-    if (req.body === undefined) {
-        res
-            .status(400)
-            .json({
-            success: false,
-            message: 'No request body passed'
-        })
-            .send()
-            .end();
-        console.error('Received request without body');
-        return;
+    const script = `
+  <script>
+    window.onBeforeUnload = function(event){
+      window.opener.test();
+      window.close();
     }
-    const fromName = req.body.fromName;
-    const toName = req.body.toName;
-    const message = req.body.message;
-    const id = req.body.id;
-    const params = [fromName, toName, message, id];
-    if (params.includes(undefined)) {
-        res
-            .status(400)
-            .json({
-            success: false,
-            message: `Missing request body item. Make sure you pass 'fromName', 'toName', 'message' and 'id'`
-        })
-            .send()
-            .end();
-        console.error(`Received request with missing parameter. ${JSON.stringify(params)}`);
-        return;
-    }
-    // Create tickets
-    // tslint:disable-next-line: max-line-length
-    const promises = [createVerticalImage(fromName, toName, message, id)];
-    // await statsRef.set({
-    //   picturesGenerated: increment
-    // }, { merge: true });
-    await Promise.all(promises);
-    res
-        .status(200)
-        .json({
-        success: true,
-        message: `Pictures generated with ID ${id}`
-    })
-        .send();
+  </script>
+  `;
+    res.send(script);
 });
 // Start listening on defined port
 app.listen(port, () => console.log(`🚀 Server listening on port ${port}`));

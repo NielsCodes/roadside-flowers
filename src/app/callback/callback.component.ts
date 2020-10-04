@@ -10,7 +10,7 @@ import {
   state,
   style,
   transition,
-  animate, query
+  animate
 } from '@angular/animations';
 import { HttpClient } from '@angular/common/http';
 import { Clipboard } from '@angular/cdk/clipboard';
@@ -32,18 +32,6 @@ declare const fbq: any;
         style({ opacity: 1 }),
         animate('.5s ease', style({ opacity: 0 }))
       ]),
-
-      // state('loading', style({
-      //   opacity: 1,
-      //   zIndex: 12
-      // })),
-
-      // state('loaded', style({
-      //   opacity: 0,
-      //   zIndex: -2
-      // })),
-
-      // transition('loading => loaded', animate('500ms ease-in'))
 
     ]),
 
@@ -95,7 +83,6 @@ export class CallbackComponent implements OnInit{
   dataId: string;
   isVertical: boolean;
   fallbackActive = false;
-  test = true;
   subscribedToNewsletter = false;
   isSubscribing = false;
   snackbarTxt = '';
@@ -337,6 +324,10 @@ export class CallbackComponent implements OnInit{
     this.snackbarTimeout = setTimeout(() => {
       this.snackbarActive = false;
     }, 5000);
+  }
+
+  test() {
+    console.log('Test function called');
   }
 
 }
