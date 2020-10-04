@@ -432,7 +432,7 @@ app.get('/oauth/callback', passport_1.default.authenticate('twitter'), (req, res
       window.onBeforeUnload = function(event){
         window.opener.test();
       }
-      window.close();
+      window.opener.test()
     </script>`;
     res.send(script);
 });
