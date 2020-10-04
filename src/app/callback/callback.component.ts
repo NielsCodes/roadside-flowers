@@ -10,7 +10,7 @@ import {
   state,
   style,
   transition,
-  animate
+  animate, query
 } from '@angular/animations';
 import { HttpClient } from '@angular/common/http';
 import { Clipboard } from '@angular/cdk/clipboard';
@@ -28,17 +28,22 @@ declare const fbq: any;
   animations: [
     trigger('loadingState', [
 
-      state('loading', style({
-        opacity: 1,
-        zIndex: 12
-      })),
+      transition(':leave', [
+        style({ opacity: 1 }),
+        animate('.5s ease', style({ opacity: 0 }))
+      ]),
 
-      state('loaded', style({
-        opacity: 0,
-        zIndex: -2
-      })),
+      // state('loading', style({
+      //   opacity: 1,
+      //   zIndex: 12
+      // })),
 
-      transition('loading => loaded', animate('500ms ease-in'))
+      // state('loaded', style({
+      //   opacity: 0,
+      //   zIndex: -2
+      // })),
+
+      // transition('loading => loaded', animate('500ms ease-in'))
 
     ]),
 
@@ -54,7 +59,27 @@ declare const fbq: any;
       })),
 
       transition('inactive => active', animate('250ms ease-in'))
+    ]),
+
+    trigger('snackbarState', [
+
+      transition(':enter', [
+        style({
+          transform: 'scale(0.8)',
+          opacity: 0
+        }),
+        animate('.5s ease-out')
+      ]),
+
+      transition(':leave', [
+        animate('.2s ease-out', style({
+          transform: 'scale(0.8)',
+          opacity: 0
+        })),
+      ]),
+
     ])
+
   ]
 })
 export class CallbackComponent implements OnInit{
@@ -73,6 +98,9 @@ export class CallbackComponent implements OnInit{
   test = true;
   subscribedToNewsletter = false;
   isSubscribing = false;
+  snackbarTxt = '';
+  snackbarActive = false;
+  snackbarTimeout;
   private rootEndpoint = environment.endpoint;
   private popupReference;
 
@@ -187,6 +215,7 @@ export class CallbackComponent implements OnInit{
 
     // Check if platform supports Web share API
     if (this.nav.share) {
+      console.log('Foo')
 
       if (detectBrowser.os !== 'Mac OS' && detectBrowser.name !== 'safari') {
         this.canShare = true;
@@ -199,12 +228,10 @@ export class CallbackComponent implements OnInit{
   // Redirect back to home if loading state has not changed after 10 seconds
   ngOnInit(): void {
     setTimeout(() => {
-
       if (this.loadingState === 'loading') {
         console.error('Something went wrong...');
         this.router.navigate(['']);
       }
-
     }, 10000);
   }
 
@@ -227,6 +254,7 @@ export class CallbackComponent implements OnInit{
   // Copy link to clipboard
   onCopyToClipboard(): void {
     this.clipboard.copy(this.pageURL);
+    this.showSnackbar('Copied to clipboard!');
   }
 
   // Share on Facebook
@@ -282,10 +310,33 @@ export class CallbackComponent implements OnInit{
     try {
       await this.api.subscribeToNewsletter(this.dataId);
       this.subscribedToNewsletter = true;
+      this.showSnackbar('Subscribed to the newsletter');
     } catch (error) {
       console.error(error);
     }
     this.isSubscribing = false;
+  }
+
+  /**
+   * Show snackbar popup
+   * @param message Message to show in the snackbar
+   */
+  private showSnackbar(message: string) {
+
+    if (this.snackbarActive) {
+      this.snackbarActive = false;
+      clearTimeout(this.snackbarTimeout);
+      setTimeout(() => {
+        this.showSnackbar(message);
+      }, 500);
+      return;
+    }
+
+    this.snackbarTxt = message;
+    this.snackbarActive = true;
+    this.snackbarTimeout = setTimeout(() => {
+      this.snackbarActive = false;
+    }, 5000);
   }
 
 }

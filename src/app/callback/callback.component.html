@@ -16,7 +16,6 @@
         <button class="share-option btn" id="share-twitter" (click)="onShareToTwitter()">Share on Twitter</button>
         <button class="share-option btn" id="share-facebook" (click)="onShareToFacebook()">Share on Facebook</button>
         <button class="share-option btn" id="share-any" *ngIf="canShare" (click)="onMobileShare()">Share elsewhere</button>
-        <button class="share-option btn" id="share-any" (click)="onMobileShare()">Share elsewhere</button>
         <button
           class="share-option btn"
           id="newsletter-consent"
@@ -35,7 +34,7 @@
 
 
 <!-- Preloader overlay -->
-<div id="loading-overlay" [@loadingState]="loadingState">
+<div id="loading-overlay" *ngIf="loadingState === 'loading'" [@loadingState]>
 
   <div id="loading-content">
     <img src="../../assets/bird black.svg" alt="bitbird logo" id="loading-logo">
@@ -44,3 +43,9 @@
 
 </div>
 
+
+<div id="snackbar-container" *ngIf="snackbarActive && snackbarTxt && snackbarTxt !== ''" [@snackbarState]>
+  <div id="snackbar">
+    {{ snackbarTxt }}
+  </div>
+</div>
