@@ -25,6 +25,9 @@
     #download-container
       display: flex
       flex-direction: column
+      align-items: center
+      padding: 0 1rem
+      box-sizing: border-box
 
       #download-btn
         margin-bottom: 10px
@@ -32,6 +35,8 @@
         display: inline-table
         transition: all .2s ease
         width: 100%
+        box-sizing: border-box
+        margin: 1rem
         box-sizing: border-box
 
       #download-fallback
@@ -51,16 +56,24 @@
       display: flex
       flex-direction: column
       align-items: center
+      width: 100%
+
+      @media screen and (max-width: 600px)
+        position: initial
 
       #share-title
         margin-bottom: 20px
 
       #share-options-wrapper
-        .share-option
-          margin-right: 20px
+        width: 100%
+        display: flex
+        flex-wrap: wrap
+        justify-content: center
+        max-width: 1800px
 
-          &:last-child
-            margin-right: 0
+        .share-option
+          margin: 1rem
+          flex: 1 1 calc(25% - 2rem)
 
         #newsletter-consent
           &.subscribed

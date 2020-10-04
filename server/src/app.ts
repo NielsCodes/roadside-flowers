@@ -503,26 +503,6 @@ app.post('/newsletter', async (req: Request, res: Response) => {
 
 })
 
-app.get('/secret', async (req: Request, res: Response) => {
-
-  const {SecretManagerServiceClient} = require('@google-cloud/secret-manager');
-  const name = 'projects/565477002562/secrets/test-secret/versions/latest';
-
-  const client = new SecretManagerServiceClient();
-
-  const [version] = await client.accessSecretVersion({
-    name,
-  });
-
-  // Extract the payload as a string.
-  const payload = version.payload.data.toString();
-
-  // WARNING: Do not print the secret in a production environment - this
-  // snippet is showing how to access the secret material.
-  res.send(payload);
-
-})
-
 app.get('/auth/twitter', (req: Request, res: Response, next: NextFunction) => {
   /**
    * req.query gets overwritten by OAuth
