@@ -44,12 +44,12 @@
 
           <div id="presave-title">Choose an option</div>
 
-          <div class="save-option" id="spotify-option" (click)="onSpotifyLogin()">
+          <div class="save-option" id="spotify-option" (click)="onSpotifyLogin()" [@saveOptionAnimation]>
             <img src="../../assets/logos/spotify.png" alt="Spotify logo" rel="preload">
             <div class="save-btn btn" id="spotify-save-btn">Pre-save on Spotify</div>
           </div>
 
-          <div class="save-option" id="apple-option" (click)="onAppleLogin()">
+          <div class="save-option" id="apple-option" (click)="onAppleLogin()" [@saveOptionAnimation]>
             <img src="../../assets/logos/apple.png" alt="Apple Music logo" rel="preload">
             <div class="save-btn btn" id="spotify-save-btn">Pre-add on Apple Music</div>
           </div>

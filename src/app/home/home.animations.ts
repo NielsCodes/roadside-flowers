@@ -90,3 +90,11 @@ export const policyAnimation =
     ]),
 
   ]);
+
+export const saveOptionAnimation =
+  trigger('saveOptionAnimation', [
+    transition(':enter', [
+      style({ opacity: 0 }),
+      animate('.2s ease')
+    ])
+  ]);

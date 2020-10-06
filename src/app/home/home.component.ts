@@ -1,4 +1,4 @@
-import { stepAnimation, policyAnimation } from './home.animations';
+import { stepAnimation, policyAnimation, saveOptionAnimation } from './home.animations';
 import { CookieService } from './../services/cookie.service';
 import { environment } from './../../environments/environment';
 import { ApiService } from './../services/api.service';
@@ -6,7 +6,6 @@ import { ScriptsService } from './../services/scripts.service';
 import { Component, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { trigger, transition, style, animate } from '@angular/animations';
 
 declare var MusicKit: any;
 
@@ -17,6 +16,7 @@ declare var MusicKit: any;
   animations: [
     policyAnimation,
     stepAnimation,
+    saveOptionAnimation
   ]
 })
 export class HomeComponent {
@@ -68,7 +68,7 @@ export class HomeComponent {
     private scripts: ScriptsService,
     private api: ApiService,
     private router: Router,
-    private cookieService: CookieService
+    private cookieService: CookieService,
   ) {
     this.onResize();
     this.scripts.loadMusicKit().pipe(filter((status: boolean) => status === true)).subscribe((status: boolean) => {
@@ -128,8 +128,9 @@ export class HomeComponent {
   onAppleLogin() {
 
     const hasSaved = localStorage.getItem('appleSave');
+    const campaign = localStorage.getItem('appleCampaign');
 
-    if (hasSaved === 'true') {
+    if (hasSaved === 'true' && campaign === 'RF') {
 
       this.router.navigate(['/callback'], { queryParams: { ref: 'apple', status: '2', dataId: this.dataId } });
 

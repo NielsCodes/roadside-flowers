@@ -29,6 +29,7 @@
     "firebase": "^7.13.1",
     "firebase-functions": "^3.11.0",
     "jsonwebtoken": "^8.5.1",
+    "ngx-cookie-service": "^10.1.1",
     "ngx-filesaver": "^10.0.0",
     "qs": "^6.9.4",
     "rxjs": "~6.5.4",

@@ -132,7 +132,7 @@ export class CallbackComponent implements OnInit{
     private http: HttpClient,
     private clipboard: Clipboard,
     private api: ApiService,
-    private cookie: CookieService,
+    private cookieService: CookieService,
     private analytics: AngularFireAnalytics,
   ) {
     this.onResize();
@@ -155,7 +155,7 @@ export class CallbackComponent implements OnInit{
       if (ref === 'messenger') {
         this.referrer = 'messenger';
         this.presaveSuccessful = true;
-        if (this.cookie.trackingActive) {
+        if (this.cookieService.trackingActive) {
           fbq('trackCustom', 'presave', { platform: 'messenger' });
           this.analytics.logEvent('presave', { platform: 'messenger' });
         }
@@ -172,8 +172,9 @@ export class CallbackComponent implements OnInit{
           this.api.hasSaved.subscribe( (appleState: boolean) => {
             this.presaveSuccessful = appleState;
             localStorage.setItem('appleSave', 'true');
+            localStorage.setItem('appleCampaign', 'RF');
             this.updateLoadingState();
-            if (this.cookie.trackingActive) {
+            if (this.cookieService.trackingActive) {
               fbq('trackCustom', 'presave', { platform: 'apple' });
               this.analytics.logEvent('presave', { platform: 'apple' });
             }
@@ -196,7 +197,7 @@ export class CallbackComponent implements OnInit{
               this.presaveSuccessful = true;
               this.updateLoadingState();
 
-              if (this.cookie.trackingActive) {
+              if (this.cookieService.trackingActive) {
                 fbq('trackCustom', 'presave', { platform: 'spotify' });
                 this.analytics.logEvent('presave', { platform: 'spotify' });
               }
@@ -219,7 +220,6 @@ export class CallbackComponent implements OnInit{
 
     // Check if platform supports Web share API
     if (this.nav.share) {
-      console.log('Foo')
 
       if (detectBrowser.os !== 'Mac OS' && detectBrowser.name !== 'safari') {
         this.canShare = true;
