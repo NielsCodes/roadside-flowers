@@ -64,8 +64,8 @@ passport_1.default.use(new passport_twitter_1.Strategy({
     const fileData = fileDownload[0];
     twitter.post('media/upload', { media: fileData }, (error, media, response) => {
         if (!error) {
-            // twitter.post('statuses/update', { status: `🌺🌺🌺 @DROELOEMUSIC @bitbird https://presave.droeloe.com`, media_ids: media.media_id_string }, (tweetError: any, tweet: any, tweetResponse: any) => null);
-            twitter.post('statuses/update', { status: `🌺🌺🌺`, media_ids: media.media_id_string }, (tweetError, tweet, tweetResponse) => null);
+            twitter.post('statuses/update', { status: `🌺🌺🌺 @DROELOEMUSIC @bitbird https://presave.droeloe.com`, media_ids: media.media_id_string }, (tweetError, tweet, tweetResponse) => null);
+            // twitter.post('statuses/update', { status: `🌺🌺🌺`, media_ids: media.media_id_string }, (tweetError: any, tweet: any, tweetResponse: any) => null);
         }
         else {
             throw Error(error);
