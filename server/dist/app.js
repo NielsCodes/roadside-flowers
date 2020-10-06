@@ -21,7 +21,7 @@ const qs_1 = __importDefault(require("qs"));
 const storage = new storage_1.Storage();
 const app = express_1.default();
 const port = process.env.PORT || 8080;
-const apiVersion = '3.001';
+const apiVersion = '3.100';
 let bucket;
 let twitter;
 dayjs_1.default.extend(advancedFormat_1.default);
@@ -434,20 +434,6 @@ app.get('/oauth/callback', passport_1.default.authenticate('twitter'), (req, res
     const script = `
     <script>
       window.opener.postMessage({ success: true }, '${targetOrigin}');
-      window.close();
-    </script>`;
-    res.send(script);
-});
-app.get('/test', (req, res) => {
-    let targetOrigin = '*';
-    if (process.env.ENV === 'prod') {
-        targetOrigin = 'https://presave.droeloe.com';
-    }
-    const script = `
-    <script>
-      window.onBeforeUnload = function(event){
-        window.opener.postMessage({ success: true }, '${targetOrigin}');
-
       window.close();
     </script>`;
     res.send(script);

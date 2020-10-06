@@ -88,8 +88,6 @@ export class HomeComponent {
 
     });
 
-    const isMobile = this.isMobileOrTablet();
-
     // Preload images
     this.preloadedImages.backgroundImg.src = '../../assets/step1-min.jpg';
     this.preloadedImages.backgroundImg.onload = () => {
@@ -191,8 +189,6 @@ export class HomeComponent {
   onContinue() {
 
     let nextStage = this.stage;
-
-    console.log(`Second background loaded: ${this.preloadedImages.backgroundImg2.complete}`);
 
     if (this.stage === 'step1') {
 

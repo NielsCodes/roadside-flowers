@@ -1,4 +1,9 @@
-<div id="page-container" [ngClass]="{'vertical': isVertical === true}" [style.height.px]="windowHeight">
+<div
+  id="page-container"
+  *ngIf="stage === 'controls'"
+  [style.height.px]="windowHeight"
+  [ngClass]="{'vertical': isVertical === true}"
+  >
 
   <div id="output-container">
 
@@ -13,15 +18,26 @@
       <!-- <div id="share-title">Share with your friends</div> -->
 
       <div id="share-options-wrapper">
-        <button class="share-option btn" id="share-twitter" (click)="onShareToTwitter()">Share on Twitter</button>
-        <button class="share-option btn" id="share-facebook" (click)="onShareToFacebook()">Share on Facebook</button>
-        <button class="share-option btn" id="share-any" *ngIf="canShare" (click)="onMobileShare()">Share elsewhere</button>
+        <button
+          class="share-option btn"
+          id="share-twitter"
+          [ngClass]="{'used': sharedToTwitter }"
+          (click)="onShareToTwitter()">Share on Twitter</button>
+        <button
+          class="share-option btn"
+          id="share-facebook"
+          (click)="onShareToFacebook()">Share on Facebook</button>
+        <button
+          class="share-option btn"
+          id="share-any"
+
+          (click)="onMobileShare()">Share elsewhere</button>
         <button
           class="share-option btn"
           id="newsletter-consent"
           (click)="onNewsletterConsent()"
-          *ngIf="referrer === 'spotify' && dataId"
-          [ngClass]="{'subscribed': subscribedToNewsletter, 'subscribing': isSubscribing}"
+
+          [ngClass]="{'used': subscribedToNewsletter, 'progress': isSubscribing}"
           [attr.title]="subscribedToNewsletter ? 'Already subscribed' : 'Be informed of all news by subscribing to our newsletter'">Subscribe to our newsletter</button>
       </div>
 
@@ -31,7 +47,14 @@
 
 </div>
 
-
+<div
+  id="picture-container"
+  [@pictureAnimation]
+  *ngIf="stage === 'picture'"
+  [style.height.px]="windowHeight"
+  [ngClass]="{'vertical': isVertical === true}"
+  [ngStyle]="{'background-image': isVertical ? 'url('+ urls.vertical +')' : 'url('+ urls.horizontal +')' }">
+</div>
 
 <!-- Preloader overlay -->
 <div id="loading-overlay" *ngIf="loadingState === 'loading'" [@loadingState]>

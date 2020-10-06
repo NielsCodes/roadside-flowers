@@ -18,7 +18,7 @@ import qs from 'qs';
 const storage = new Storage();
 const app: Application = express();
 const port = process.env.PORT || 8080;
-const apiVersion = '3.001';
+const apiVersion = '3.100';
 let bucket: Bucket;
 let twitter: Twitter;
 
@@ -526,24 +526,6 @@ app.get('/oauth/callback', passport.authenticate('twitter'), (req: Request, res:
   const script = `
     <script>
       window.opener.postMessage({ success: true }, '${targetOrigin}');
-      window.close();
-    </script>`;
-
-  res.send(script);
-})
-
-app.get('/test', (req: Request, res: Response) => {
-  let targetOrigin = '*';
-
-  if (process.env.ENV === 'prod'){
-    targetOrigin = 'https://presave.droeloe.com'
-  }
-
-  const script = `
-    <script>
-      window.onBeforeUnload = function(event){
-        window.opener.postMessage({ success: true }, '${targetOrigin}');
-
       window.close();
     </script>`;
 
