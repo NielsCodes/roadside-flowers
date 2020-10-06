@@ -18,7 +18,7 @@ import qs from 'qs';
 const storage = new Storage();
 const app: Application = express();
 const port = process.env.PORT || 8080;
-const apiVersion = '3.100';
+const apiVersion = '3.200';
 let bucket: Bucket;
 let twitter: Twitter;
 
@@ -387,14 +387,11 @@ app.post('/register', async (req: Request, res: Response) => {
   });
 
   // Create tickets
-  // tslint:disable-next-line: max-line-length
-  const promises = [ createHorizontalImage(fromName, toName, message, id) ];
+  await createImages(fromName, toName, message, id);
 
   await statsRef.set({
     picturesGenerated: increment
   }, { merge: true });
-
-  await Promise.all(promises);
 
   res
     .status(200)
@@ -879,7 +876,7 @@ const createVerticalImage = async (fromName: string, toName: string, message: st
  * @param message UGC: 'Message'
  * @param id ID to link to front-end
  */
-const createHorizontalImage = async (fromName: string, toName: string, message: string, id: string) => {
+const createImages = async (fromName: string, toName: string, message: string, id: string) => {
 
   registerFont(`./assets/ernie.ttf`, { family: 'Ernie' });
   const canvas = createCanvas(1920, 1080);

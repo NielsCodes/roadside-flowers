@@ -21,7 +21,7 @@ const qs_1 = __importDefault(require("qs"));
 const storage = new storage_1.Storage();
 const app = express_1.default();
 const port = process.env.PORT || 8080;
-const apiVersion = '3.100';
+const apiVersion = '3.200';
 let bucket;
 let twitter;
 dayjs_1.default.extend(advancedFormat_1.default);
@@ -319,12 +319,10 @@ app.post('/register', async (req, res) => {
         createdAt: firebase_admin_1.default.firestore.FieldValue.serverTimestamp()
     });
     // Create tickets
-    // tslint:disable-next-line: max-line-length
-    const promises = [createHorizontalImage(fromName, toName, message, id)];
+    await createImages(fromName, toName, message, id);
     await statsRef.set({
         picturesGenerated: increment
     }, { merge: true });
-    await Promise.all(promises);
     res
         .status(200)
         .json({
@@ -713,7 +711,7 @@ const createVerticalImage = async (fromName, toName, message, id) => {
  * @param message UGC: 'Message'
  * @param id ID to link to front-end
  */
-const createHorizontalImage = async (fromName, toName, message, id) => {
+const createImages = async (fromName, toName, message, id) => {
     canvas_1.registerFont(`./assets/ernie.ttf`, { family: 'Ernie' });
     const canvas = canvas_1.createCanvas(1920, 1080);
     const ctx = canvas.getContext('2d');

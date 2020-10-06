@@ -74,7 +74,7 @@ declare const fbq: any;
         style({
           opacity: 1
         }),
-        animate('1s ease', style({ opacity: 0 }))
+        animate('2s ease', style({ opacity: 0 }))
       ])
 
     ])
@@ -265,7 +265,7 @@ export class CallbackComponent implements OnInit{
     this.stage = 'picture';
     setTimeout(() => {
       this.stage = 'controls';
-    }, 4000);
+    }, 3000);
   }
 
   // Copy link to clipboard
