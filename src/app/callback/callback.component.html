@@ -1,32 +1,63 @@
-<div id="page-container" class="static-frame" [ngClass]="{'vertical': isVertical === true}" [ngStyle]="{'background-size.px': isVertical ? windowHeight*3.5 : windowWidth}" [style.height.px]="windowHeight">
+<div
+  id="page-container"
+  *ngIf="stage === 'controls'"
+  [style.height.px]="windowHeight"
+  [ngClass]="{'vertical': isVertical === true}"
+  >
 
-  <div id="output-container" *ngIf="stage === 'download'">
+  <div id="output-container">
 
-    <div id="output-title">Thank you. You can now download your tickets</div>
+    <div id="download-container" *ngIf="urls">
+      <div id="download-btn" class="btn" (click)="onDownload()">DOWNLOAD</div>
+      <a id="download-fallback" [href]="urls?.vertical" title="Open picture in new window" target="_blank" [ngClass]="{'fallback-active': (fallbackActive && urls)}">Download didn't start? Click <u>here</u></a>
+    </div>
 
-    <button class="screen-btn" id="download-tickets-btn" (click)="onDownload()">Download tickets</button>
 
-  </div>
+    <div id="share-container">
 
+      <!-- <div id="share-title">Share with your friends</div> -->
 
-  <div id="share-container" *ngIf="stage === 'share'">
+      <div id="share-options-wrapper">
+        <button
+          class="share-option btn"
+          id="share-twitter"
+          [ngClass]="{'used': sharedToTwitter }"
+          (click)="onShareToTwitter()">Share on Twitter</button>
+        <button
+          class="share-option btn"
+          id="share-facebook"
+          (click)="onShareToFacebook()">Share on Facebook</button>
+        <button
+          class="share-option btn"
+          id="share-any"
 
-    <div id="share-title">Share with your friends</div>
+          (click)="onMobileShare()">Share elsewhere</button>
+        <button
+          class="share-option btn"
+          id="newsletter-consent"
+          (click)="onNewsletterConsent()"
 
-    <button class="share-option screen-btn" id="share-twitter" (click)="onShareToTwitter()">Share on Twitter</button>
-    <button class="share-option screen-btn" id="share-facebook" (click)="onShareToFacebook()">Share on Facebook</button>
-    <button class="share-option screen-btn" id="share-any" *ngIf="canShare" (click)="onMobileShare()">Share elsewhere</button>
+          [ngClass]="{'used': subscribedToNewsletter, 'progress': isSubscribing}"
+          [attr.title]="subscribedToNewsletter ? 'Already subscribed' : 'Be informed of all news by subscribing to our newsletter'">Subscribe to our newsletter</button>
+      </div>
 
-    <a id="download-fallback" *ngIf="urls" [href]="urls.vertical" title="Open ticket in new window" target="_blank">Download didn't start? Click <u>here</u></a>
+    </div>
 
   </div>
 
 </div>
 
-
+<div
+  id="picture-container"
+  [@pictureAnimation]
+  *ngIf="stage === 'picture'"
+  [style.height.px]="windowHeight"
+  [ngClass]="{'vertical': isVertical === true}"
+  [ngStyle]="{'background-image': isVertical ? 'url('+ urls.vertical +')' : 'url('+ urls.horizontal +')' }">
+</div>
 
 <!-- Preloader overlay -->
-<div id="loading-overlay" [@loadingState]="loadingState">
+<div id="loading-overlay" *ngIf="loadingState === 'loading'" [@loadingState]>
 
   <div id="loading-content">
     <img src="../../assets/bird black.svg" alt="bitbird logo" id="loading-logo">
@@ -35,3 +66,9 @@
 
 </div>
 
+
+<div id="snackbar-container" *ngIf="snackbarActive && snackbarTxt && snackbarTxt !== ''" [@snackbarState]>
+  <div id="snackbar">
+    {{ snackbarTxt }}
+  </div>
+</div>

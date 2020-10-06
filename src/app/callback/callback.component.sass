@@ -1,76 +1,100 @@
 #page-container
   width: 100vw
-  display: flex
-  align-items: center
-  justify-content: center
-  flex-direction: column
   min-height: -webkit-fill-available
-  background-image: url('../../assets/background.jpg')
+  background-image: url('../../assets/step2-min.jpg')
   background-size: cover
   background-position: center
   color: #fff
   font-family: Arial, Helvetica, sans-serif
-
-  &.vertical
-
-    #share-container
-      display: flex
-      flex-direction: column
-
-      .share-option
-        margin: 10px 0
+  overflow: none !important
+  font-family: 'bQSUfYhuCn5q'
 
   #output-container
+    position: absolute
+    top: 0
+    left: 0
+    width: 100%
+    height: 100%
+    background: rgba(0,0,0,.2)
+    backdrop-filter: blur(20px)
     display: flex
+    align-items: center
+    justify-content: center
     flex-direction: column
-    padding: 40px
-    margin-top: -40px
-    box-sizing: border-box
 
-    #output-title
-      font-size: 1.4em
-      font-weight: bold
-      margin-bottom: 20px
-      text-align: center
+    #download-container
+      display: flex
+      flex-direction: column
+      align-items: center
+      padding: 0 1rem
+      box-sizing: border-box
 
-  #share-container
-    display: grid
-    grid-template-columns: repeat(4, 1fr)
-    grid-auto-rows: auto
-    grid-column-gap: 40px
-    grid-row-gap: 40px
-    margin-top: -40px
-    padding: 40px
-    box-sizing: border-box
+      #download-btn
+        margin-bottom: 10px
+        text-align: center
+        display: inline-table
+        transition: all .2s ease
+        width: 100%
+        box-sizing: border-box
+        margin: 1rem
+        box-sizing: border-box
 
-    #share-title
-      font-size: 1.4em
-      font-weight: bold
-      grid-column-start: 1
-      grid-column-end: 5
-      grid-row: 1
-      text-align: center
+      #download-fallback
+        opacity: 0
+        user-select: none
+        transition: all .2s ease
+        cursor: pointer
+        color: inherit
+        text-decoration: none
+        text-align: center
 
-    #share-twitter
-      grid-row: 2
-      grid-column-start: 1
-      grid-column-end: 3
+        &.fallback-active
+          opacity: 1
 
-    #share-facebook
-      grid-row: 2
-      grid-column-start: 3
-      grid-column-end: 5
+    #share-container
+      position: absolute
+      bottom: 100px
+      display: flex
+      flex-direction: column
+      align-items: center
 
-    #download-fallback
-      grid-row: 3
-      grid-column-start: 1
-      grid-column-end: 5
-      text-align: center
-      font-weight: bold
-      cursor: pointer
-      color: #6787ED
-      text-decoration: none
+      @media screen and (max-width: 600px)
+        position: initial
 
+      #share-title
+        margin-bottom: 20px
+
+      #share-options-wrapper
+        width: 100%
+        display: flex
+        flex-wrap: wrap
+        justify-content: center
+        max-width: 1800px
+
+        .share-option
+          margin: 1rem
+          flex: 1 1 calc(25% - 2rem)
+
+          &.used
+            border-color: #ddd
+            background: #ddd
+            color: #afafaf
+            cursor: not-allowed
+
+          &.progress
+            border-color: #ddd
+            background: #ddd
+            color: #afafaf
+            cursor: progress
+
+#picture-container
+  position: absolute
+  top: 0
+  left: 0
+  width: 100vw
+  background-size: cover
+  background-position: center
+  z-index: 20
 
 #loading-overlay
   position: absolute
@@ -83,6 +107,7 @@
   display: flex
   align-items: center
   justify-content: center
+  z-index: 50
 
   #loading-content
     display: flex
@@ -97,15 +122,33 @@
       height: 10px
       margin-top: 10px
 
-.screen-btn
-  outline: none
-  -webkit-tap-highlight-color: none
-  border: 3px solid #fff
-  background: #6787ED
-  color: #fff
-  padding: 10px 20px
-  font-family: Arial, Helvetica, sans-serif
-  font-size: 1.4em
-  font-weight: bold
-  cursor: pointer
-  user-select: none
+#snackbar-container
+  position: absolute
+  bottom: 0
+  left: 0
+  width: 100%
+  height: 60px
+  display: flex
+  justify-content: center
+  pointer-events: none
+
+  #snackbar
+    background: #fff
+    color: #000
+    font-family: 'bQSUfYhuCn5q'
+    font-weight: normal
+    padding: 10px 20px
+    height: 40px
+    margin-bottom: 20px
+    box-sizing: border-box
+
+    @media screen and (max-width: 600px)
+      width: 100%
+      height: 60px
+      margin-bottom: 0
+      display: flex
+      align-items: center
+      justify-content: center
+      padding: 0
+
+

@@ -1,3 +1,4 @@
+import { stepAnimation, policyAnimation } from './home.animations';
 import { CookieService } from './../services/cookie.service';
 import { environment } from './../../environments/environment';
 import { ApiService } from './../services/api.service';
@@ -5,7 +6,6 @@ import { ScriptsService } from './../services/scripts.service';
 import { Component, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { NgForm } from '@angular/forms';
 import { trigger, transition, style, animate } from '@angular/animations';
 
 declare var MusicKit: any;
@@ -15,21 +15,8 @@ declare var MusicKit: any;
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.sass'],
   animations: [
-
-    trigger('policyAnimation', [
-
-      transition(':enter', [
-        style({ opacity: 0 }),
-        animate('.2s ease', style({ opacity: 1 }))
-      ]),
-
-      transition(':leave', [
-        style({ opacity: 1 }),
-        animate('.2s ease', style({ opacity: 0 }))
-      ]),
-
-    ])
-
+    policyAnimation,
+    stepAnimation,
   ]
 })
 export class HomeComponent {
@@ -40,12 +27,17 @@ export class HomeComponent {
   windowHeight: number;
   windowWidth: number;
   isVertical: boolean;
+  preloadedImages = {
+    backgroundImg: new Image(),
+    backgroundImg2: new Image(),
+    spotifyImg: new Image(),
+    appleImg: new Image(),
+  };
 
   formData = {
-    origin: '',
-    destination: '',
-    name: '',
-    email: ''
+    from: '',
+    to: '',
+    message: ''
   };
 
   stage = '';
@@ -96,30 +88,25 @@ export class HomeComponent {
 
     });
 
-    const isMobile = this.isMobileOrTablet();
-
-    const backgroundImg = new Image();
-    backgroundImg.src = '../../assets/background.jpg';
-    backgroundImg.onload = () => {
-      this.stage = 'start';
+    // Preload images
+    this.preloadedImages.backgroundImg.src = '../../assets/step1-min.jpg';
+    this.preloadedImages.backgroundImg.onload = () => {
+      this.stage = 'step1';
     };
 
-    const spotifyImg = new Image();
-    spotifyImg.src = '../../assets/logos/messenger.png';
-
-    const appleImg = new Image();
-    appleImg.src = '../../assets/logos/apple.png';
-
+    this.preloadedImages.backgroundImg2.src = '../../assets/step2-min.jpg';
+    this.preloadedImages.spotifyImg.src = '../../assets/logos/messenger.png';
+    this.preloadedImages.appleImg.src = '../../assets/logos/apple.png';
 
   }
 
-  async onSubmit(form: NgForm) {
+  async submitForm() {
 
-    const d = form.value;
+    const d = this.formData;
     this.dataId =  this.api.createDataID();
 
     this.stage = 'save';
-    await this.api.registerData(d.name, d.origin, d.destination, d.email, this.dataId);
+    await this.api.registerData(d.from, d.to, d.message, this.dataId);
 
   }
 
@@ -129,7 +116,7 @@ export class HomeComponent {
     const rootUrl = 'https://accounts.spotify.com/authorize';
     const clientID = 'e927df0934d7411181641fbd99a56f3c';
     const redirectURL = environment.redirect;
-    const scope = 'user-library-modify user-read-private user-follow-modify';
+    const scope = 'user-library-modify user-read-private user-follow-modify user-read-email';
     const state = `spotify_${this.dataId}`;
 
     // tslint:disable-next-line: max-line-length
@@ -162,11 +149,6 @@ export class HomeComponent {
 
   }
 
-  onMessengerNotify() {
-    // TODO: Add new messenger flow
-    window.location.href = 'https://m.me/bitbirdofficial?ref=MGFSRHl1UlIrZWg1T291VGIvSmJQVTNnYW9FMEdrekFJMkFuT3dJaHhOND0tLVBrM2tSV1krM1ovdVVYWFozSll2OXc9PQ==--0309a911624ec92383e0f60877cd5bebff5ef041';
-  }
-
   private loginWithApple() {
     this.music.authorize().then((token: string) => {
       this.api.registerApplePresave(token);
@@ -182,10 +164,12 @@ export class HomeComponent {
   }
 
   onSpotifyListen() {
+    // TODO: Change to new link
     window.location.href = 'https://open.spotify.com/track/0cR04cbujsPTTyKUazySY0';
   }
 
   onAppleListen() {
+    // TODO: Change to new link
     window.location.href = 'https://music.apple.com/us/album/open-blinds-single/1521225746';
   }
 
@@ -200,6 +184,59 @@ export class HomeComponent {
 
   onHidePolicy() {
     this.showPolicy = false;
+  }
+
+  onContinue() {
+
+    let nextStage = this.stage;
+
+    if (this.stage === 'step1') {
+
+      if (!this.preloadedImages.backgroundImg2.complete) {
+        this.preloadedImages.backgroundImg2.src = '../../assets/step2-min.png';
+        this.preloadedImages.backgroundImg2.onload = () => {
+          this.startIntro();
+        };
+      } else {
+        this.startIntro();
+      }
+
+    } else {
+      switch (this.stage) {
+        case 'step2':
+          nextStage = 'step3';
+          break;
+        case 'step3':
+          nextStage = 'step4';
+          this.submitForm();
+          break;
+        default:
+          break;
+      }
+
+      this.stage = nextStage;
+    }
+
+  }
+
+  /** Start timer to proceed through the first steps */
+  startIntro() {
+
+    this.cookieService.setConsent();
+    this.stage = 'step2';
+    setTimeout(() => {
+      this.stage = 'step3';
+    }, 1000);
+
+  }
+
+  /** Remove double line breaks from text */
+  stripNewlines(message: string): string {
+    return message.replace(/[\n]{2,}/g, '\n');
+  }
+
+  onTextareaEnter(event: KeyboardEvent) {
+    event.preventDefault();
   }
 
 }

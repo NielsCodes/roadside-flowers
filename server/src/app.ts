@@ -1,23 +1,28 @@
 import { SpotifyAuthorizationData, SpotifyAuthorization, SpotifyUser } from './models';
 import express, { Response, Request, Application, NextFunction } from 'express';
 import { createCanvas, loadImage, registerFont } from 'canvas';
-import { Storage, Bucket } from '@google-cloud/storage';
 import { Strategy as TwitterStrategy } from 'passport-twitter';
-import Twitter from 'twitter';
+import advancedFormat from 'dayjs/plugin/advancedFormat';
+import { Storage, Bucket } from '@google-cloud/storage';
+import drawMultilineText from 'canvas-multiline-text';
 import admin from 'firebase-admin';
-import axios from 'axios';
 import passport from 'passport';
+import jwt from 'jsonwebtoken';
+import Twitter from 'twitter';
+import dayjs from 'dayjs';
+import axios from 'axios';
+import cors from 'cors';
 import fs from 'fs';
 import qs from 'qs';
-import cors from 'cors';
-import jwt from 'jsonwebtoken';
 
 const storage = new Storage();
 const app: Application = express();
 const port = process.env.PORT || 8080;
-const apiVersion = '2.120';
+const apiVersion = '3.100';
 let bucket: Bucket;
 let twitter: Twitter;
+
+dayjs.extend(advancedFormat);
 
 if (process.env.ENV !== 'prod' && process.env.ENV !== 'dev'){
   require('dotenv').config();
@@ -59,14 +64,15 @@ passport.use(new TwitterStrategy({
       access_token_secret: tokenSecret
     })
 
-    const fileDownload = await bucket.file(`tickets/${req.session!.dataId}/DROELOE-ticket-horizontal.jpg`).download()
+    const fileDownload = await bucket.file(`pictures/${req.session!.dataId}/DROELOE-picture-horizontal.jpg`).download()
     const fileData = fileDownload[0];
 
     twitter.post('media/upload', { media: fileData }, (error: any, media: any, response: any) => {
 
       if (!error) {
 
-        twitter.post('statuses/update', { status: `🎟️🎟️🎟️ @DROELOEMUSIC @bitbird https://presave.droeloe.com`, media_ids: media.media_id_string }, (tweetError: any, tweet: any, tweetResponse: any) => null);
+        // twitter.post('statuses/update', { status: `🌺🌺🌺 @DROELOEMUSIC @bitbird https://presave.droeloe.com`, media_ids: media.media_id_string }, (tweetError: any, tweet: any, tweetResponse: any) => null);
+        twitter.post('statuses/update', { status: `🌺🌺🌺`, media_ids: media.media_id_string }, (tweetError: any, tweet: any, tweetResponse: any) => null);
 
 
       } else {
@@ -161,6 +167,7 @@ app.post('/spotify', async (req: Request, res: Response) => {
     if (!firstPresave) {
 
       await registerAuthCodeForExistingSpotifyPresave(userData.id, authCode)
+      await registerDataIdForExistingSpotifyPresave(userData.id, dataId);
 
       res
         .status(200)
@@ -350,49 +357,45 @@ app.post('/register', async (req: Request, res: Response) => {
       })
       .send()
       .end();
+    console.error('Received request without body');
     return;
   }
 
-  const name = req.body.name;
-  const origin = req.body.origin;
-  const destination = req.body.destination;
+  const fromName = req.body.fromName;
+  const toName = req.body.toName;
+  const message = req.body.message;
   const id = req.body.id;
-  const email = req.body.email;
 
-  const params = [name, origin, destination, id, email];
+  const params = [fromName, toName, message, id];
   if (params.includes(undefined)) {
     res
       .status(400)
       .json({
         success: false,
-        message: `Missing request body item. Make sure you pass 'name', 'origin', 'destination', 'email' and 'id'`
+        message: `Missing request body item. Make sure you pass 'fromName', 'toName', 'message' and 'id'`
       })
       .send()
       .end();
+    console.error(`Received request with missing parameter. ${JSON.stringify(params)}`);
     return;
   }
 
   // Log in Firestore
-  const docRef = admin.firestore().collection('ticketData').doc();
+  const docRef = admin.firestore().collection('pictureData').doc();
   await docRef.create({
-    name,
-    origin,
-    destination,
-    email,
+    fromName,
+    toName,
+    message,
     id,
     createdAt: admin.firestore.FieldValue.serverTimestamp()
   });
 
-  const statsSnapshot = await statsRef.get();
-  const ticketsGenerated = statsSnapshot.data()?.ticketsGenerated;
-  const ticketId = ticketsGenerated + 1
-
   // Create tickets
   // tslint:disable-next-line: max-line-length
-  const promises = [ createVerticalImage(name, origin, destination, ticketId, id), createHorizontalImage(name, origin, destination, ticketId, id) ];
+  const promises = [ createVerticalImage(fromName, toName, message, id), createHorizontalImage(fromName, toName, message, id) ];
 
   await statsRef.set({
-    ticketsGenerated: increment
+    picturesGenerated: increment
   }, { merge: true });
 
   await Promise.all(promises);
@@ -401,13 +404,13 @@ app.post('/register', async (req: Request, res: Response) => {
     .status(200)
     .json({
       success: true,
-      message: `Tickets generated with ID ${id}`
+      message: `Pictures generated with ID ${id}`
     })
     .send();
 
 });
 
-app.get('/tickets', async (req: Request, res: Response) => {
+app.get('/pictures', async (req: Request, res: Response) => {
 
   const id = req.query.id as string;
 
@@ -444,8 +447,64 @@ app.get('/tickets', async (req: Request, res: Response) => {
       .send()
   }
 
-
 });
+
+app.post('/newsletter', async (req: Request, res: Response) => {
+
+  const dataId = req.body.dataId;
+  if (dataId === undefined) {
+    res
+      .status(400)
+      .json({
+        success: false,
+        message: `Missing data ID body item. Make sure you pass 'dataId'`
+      })
+      .send()
+      .end();
+    return;
+  }
+
+
+  let email;
+
+  try {
+    email = await getEmailFromDataId(dataId);
+  } catch (error) {
+    res
+      .status(404)
+      .json({
+        success: false,
+        message: `No valid email address available for this presave ID'`
+      })
+      .send()
+      .end();
+    return;
+  }
+
+  try {
+    await subscribeToNewsletter(email);
+    res
+      .status(200)
+      .json({
+        success: true,
+        message: 'Successfully added email address to Klaviyo list'
+      })
+      .send()
+      .end()
+    return;
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        success: false,
+        message: 'Encountered an error while adding the email address to Klaviyo'
+      })
+      .send()
+      .end()
+    throw Error(`Encounted an error while adding email address ${email} to Klaviyo. ${error.toString()}`);
+  }
+
+})
 
 app.get('/auth/twitter', (req: Request, res: Response, next: NextFunction) => {
   /**
@@ -457,75 +516,24 @@ app.get('/auth/twitter', (req: Request, res: Response, next: NextFunction) => {
 }, passport.authenticate('twitter'));
 
 app.get('/oauth/callback', passport.authenticate('twitter'), (req: Request, res: Response) => {
-  res.send('<script>window.close()</script>');
+
+  let targetOrigin = '*';
+
+  if (process.env.ENV === 'prod'){
+    targetOrigin = 'https://presave.droeloe.com'
+  }
+
+  const script = `
+    <script>
+      window.opener.postMessage({ success: true }, '${targetOrigin}');
+      window.close();
+    </script>`;
+
+  res.send(script);
 })
-
-// app.get('/execute', async (req: Request, res: Response) => {
-
-//   // Check for header password
-//   const pass = req.get('pass');
-//   if (pass !== 'perspective') {
-//     res
-//       .status(403)
-//       .json({
-//         success: false,
-//         message: 'Unauthorized request'
-//       });
-//     return;
-//   }
-
-//   // const spotifySaveStatus = await executeSpotifySaves();
-//   if (!spotifySaveStatus.success) {
-//     console.log('Encountered errors while saving to Spotify');
-//     console.error(spotifySaveStatus);
-//   } else {
-//     console.log('Spotify saves processed successfully');
-//   }
-
-  // const appleSaveStatus = await executeAppleSaves();
-  // if (!appleSaveStatus.success) {
-  //   console.log('Encountered errors while saving to Apple');
-  //   console.error(appleSaveStatus.errors);
-  // } else {
-  //   console.log('Apple saves processed successfully');
-  // }
-
-//   res
-//     .status(200)
-//     .json({
-//       spotifySuccess: spotifySaveStatus.success,
-      // appleSuccess: appleSaveStatus.success,
-//     })
-//     .send();
-
-// });
-
-
 
 // Start listening on defined port
 app.listen(port, () => console.log(`🚀 Server listening on port ${port}`));
-
-
-
-
-/**
- * Return server error
- * @param error Encountered error
- * @param res Response class of active route
- */
-const returnServerError = (error: Error, res: Response) => {
-
-  console.error(error);
-
-  res
-    .status(500)
-    .json({
-      success: false,
-      message: error
-    })
-    .send();
-
-};
 
 
 
@@ -657,7 +665,7 @@ const registerSpotifyPresave = async (authData: SpotifyAuthorizationData, userDa
     timestamp: admin.firestore.FieldValue.serverTimestamp(),
     hasSaved: false,
     authCodes: [authCode],
-    dataId
+    dataIds: [dataId]
   };
 
   const docRef = admin.firestore().collection('spotifyPresaves').doc();
@@ -679,6 +687,16 @@ const registerAuthCodeForExistingSpotifyPresave = async (id: string, authCode: s
   const docId = presaveDocsSnap.docs[0].id;
   await admin.firestore().collection('spotifyPresaves').doc(docId).set({
     authCodes: admin.firestore.FieldValue.arrayUnion(authCode)
+  }, { merge: true })
+}
+
+/** Add data ID code to an existing presave */
+const registerDataIdForExistingSpotifyPresave = async (id: string, dataId: string) => {
+
+  const presaveDocsSnap = await admin.firestore().collection('spotifyPresaves').where('user.id', '==', id).get();
+  const docId = presaveDocsSnap.docs[0].id;
+  await admin.firestore().collection('spotifyPresaves').doc(docId).set({
+    dataIds: admin.firestore.FieldValue.arrayUnion(dataId)
   }, { merge: true })
 }
 
@@ -781,418 +799,70 @@ const getAppleLocalization = async (userToken: string, devToken: string) => {
 };
 
 /**
- * Save track to library for all presaves
- * - Gets access token with refresh token
- * - Follows artist
- * - Adds track to library
- * - Stores status of save in Firestore
- */
-// const executeSpotifySaves = async (): Promise<ExecutionStatus> => {
-
-//   const status: ExecutionStatus = {
-//     success: false
-//   };
-
-//   // Get all presaves from Firestore
-//   const presavesDocsSnap = await fb.firestore().collection('presaves').where('hasSaved', '==', false).get();
-//   // const presaves: SpotifyPresave[] = presavesDocsSnap.docs.filter(doc => doc.id !== '--stats--').map(doc => {
-//     const presave = {
-//       id: doc.id,
-//       ...doc.data()
-//     };
-
-//     return presave as SpotifyPresave;
-//   });
-
-//   const errorFiles: string[] = [];
-
-//   const promises: Promise<any>[] = [];
-
-//   for (const presave of presaves) {
-    // console.log('i');
-
-    // // Check if authorization object exists
-    // if ( presave.authorization === undefined || presave.authorization.refresh_token === undefined ) {
-    //   errorFiles.push(presave.id);
-    // }
-
-    // // Get new access token from refresh token
-    // const authData = await getTokenFromRefresh(presave.authorization.refresh_token);
-    // if (authData === null) {
-    //   errorFiles.push(presave.id);
-    // } else {
-    //   const accessToken = authData.access_token;
-
-
-    //   // Follow artist
-    //   const followSuccess = await followArtistonSpotify(accessToken);
-    //   if (!followSuccess) {
-    //     errorFiles.push(presave.id);
-    //   }
-    //   const saveSuccess = await saveTrackOnSpotify(accessToken);
-    //   if (!saveSuccess) {
-    //     errorFiles.push(presave.id);
-    //   } else {
-
-    //     const logSaveSuccess = await logSpotifySave(presave.id);
-
-    //   }
-
-    // }
-
-    // const presaveSuccess = temp(presave);
-    // promises.push(presaveSuccess);
-
-
-//   }
-
-//   Promise.all(promises).then(res => console.log(res)).catch(err => console.error(err));
-
-//   if (errorFiles.length > 0) {
-//     console.log('Encounted issues saving for the following documents:');
-//     console.error(errorFiles);
-//     status.errors = errorFiles;
-//     return status;
-//   } else {
-//     status.success = true;
-//     console.log('executed all saves');
-//     return status;
-//   }
-
-
-//   // Return overall status
-
-// };
-
-
-// const temp = async (presave: SpotifyPresave): Promise<string> => {
-
-//   console.log('i');
-
-//   // Check if authorization object exists
-//   if ( presave.authorization === undefined || presave.authorization.refresh_token === undefined ) {
-//     console.log(`Presave ID: ${presave.id} not a valid document`);
-//     return presave.id;
-//   }
-
-//   // Get new access token from refresh token
-//   const authData = await getTokenFromRefresh(presave.authorization.refresh_token);
-//   if (authData === null) {
-//     console.log(`Presave ID: ${presave.id} not a able to get auth`);
-//     return presave.id;
-//   } else {
-//     const accessToken = authData.access_token;
-
-//     // Follow artist
-//     const followSuccess = await followArtistonSpotify(accessToken);
-//     if (!followSuccess) {
-//       console.log(`Presave ID: ${presave.id} not able to follow`);
-//       return presave.id;
-//     }
-//     const saveSuccess = await saveTrackOnSpotify(accessToken);
-//     if (!saveSuccess) {
-//       console.log(`Presave ID: ${presave.id} not able to save`);
-//       return presave.id;
-//     } else {
-
-//       const logSaveSuccess = await logSpotifySave(presave.id);
-//       return 'success';
-
-//     }
-
-//   }
-
-// };
-
-/**
- * Get a new Spotify access token by using a refresh token
- * @param refreshToken Spotify refresh token from Firestore
- * @returns New access information
- */
-const getSpotifyTokenFromRefresh = async (refreshToken: string): Promise<SpotifyAuthorizationData | null> => {
-
-  const endpoint = 'https://accounts.spotify.com/api/token';
-  // const redirectUrl = process.env.REDIRECT_URL;
-
-  // Encode API credentials
-  const credentials = `${process.env.CLIENT_ID}:${process.env.CLIENT_SECRET}`;
-  const authorization = Buffer.from(credentials).toString('base64');
-
-  // Create request body
-  const requestBody = qs.stringify({
-    grant_type: 'refresh_token',
-    refresh_token: refreshToken,
-  });
-
-  // Try calling the Spotify API
-  try {
-
-    const tokenRes = await axios.post(endpoint, requestBody, {
-      headers: {
-        Authorization: `Basic ${authorization}`
-      }
-    });
-
-    return tokenRes.data as SpotifyAuthorizationData;
-
-  } catch (error) {
-
-    if (error.response.status === 400) {
-      console.log('Invalid client error');
-      return null;
-    } else {
-      console.error(error);
-    }
-  }
-
-  return null;
-
-};
-
-// /**
-//  * Follow artist on Spotify
-//  * @param token Spotify access token
-//  */
-// const followArtistonSpotify = async (token: string): Promise<boolean> => {
-
-//   let success = false;
-
-//   const artistId = '0u18Cq5stIQLUoIaULzDmA';
-//   const endpoint = `https://api.spotify.com/v1/me/following?type=artist`;
-
-//   const followData = {
-//     ids: [
-//       artistId
-//     ]
-//   };
-
-//   try {
-//     const followRes = await axios.put(endpoint, followData, {
-//       headers: {
-//         Authorization: `Bearer ${token}`
-//       }
-//     });
-
-//     if (followRes.status !== 204) {
-//       throw new Error(`Unexpected follow response status: ${followRes.status}`);
-//     }
-
-//     success = true;
-
-//   } catch (error) {
-//     console.log('Following artist failed');
-//     console.error(error);
-//   }
-
-//   return success;
-
-// };
-
-// /**
-//  * Save track to a user's library
-//  * @param token Spotify access token
-//  */
-// const saveTrackOnSpotify = async (token: string): Promise<boolean> => {
-
-//   let success = false;
-
-//   const trackId = '0cR04cbujsPTTyKUazySY0';
-//   const endpoint = 'https://api.spotify.com/v1/me/tracks';
-
-//   const data = {
-//     ids: [
-//       trackId
-//     ]
-//   };
-
-//   // Try to save track to user libraries
-//   try {
-
-//     const saveRes = await axios.put(endpoint, data, {
-//       headers: {
-//         Authorization: `Bearer ${token}`
-//       }
-//     });
-
-//     if (saveRes.status !== 200) {
-//       throw new Error(`Unexpected save response status: ${saveRes.status}`);
-//     }
-
-//     success = true;
-
-//   } catch (error) {
-//     console.log('Saving track failed');
-//     console.error(error);
-//   }
-
-//   return success;
-
-// };
-
-// /**
-//  * Update presave document when the track has been saved to the user's library
-//  * @param documentId Firestore document ID of presave entry
-//  */
-// const logSpotifySave = async (documentId: string): Promise<boolean> => {
-
-//   let success = false;
-
-//   const docRef = fb.firestore().collection('presaves').doc(documentId);
-
-//   try {
-//     await docRef.set({ hasSaved: true }, { merge: true });
-//     success = true;
-//   } catch (error) {
-//     console.log('Error while trying to log Spotify save');
-//     console.error(error);
-//   }
-
-//   return success;
-
-// };
-
-
-// const executeAppleSaves = async (): Promise<ExecutionStatus> => {
-
-//   const status: ExecutionStatus = {
-//     success: false
-//   };
-
-//   const trackId = '1521225747';
-//   const endpoint = `https://api.music.apple.com/v1/me/library?ids[albums]=${trackId}`;
-//   const errorFiles = [];
-
-//   // Get all Apple presaves
-//   const presavesDocsSnap = await fb.firestore().collection('applePresaves').get();
-//   const presaves: ApplePresave[] = presavesDocsSnap.docs.map(doc => {
-
-//     const presave = {
-//       id: doc.id,
-//       ...doc.data()
-//     };
-
-//     return presave as ApplePresave;
-//   });
-
-//   for (const presave of presaves) {
-
-//     const userToken = presave.token;
-
-//      // Try to save to library
-//     try {
-
-//       const devToken = createAppleToken();
-
-//       const saveRes = await axios.post(endpoint, null, {
-//         headers: {
-//           Authorization: `Bearer ${devToken}`,
-//           'Music-User-Token': userToken
-//         }
-//       });
-
-//       if (saveRes.status !== 202) {
-//         errorFiles.push(presave.id);
-//       } else {
-//         const logStatus = await logAppleSave(presave.id);
-//       }
-
-//     } catch (error) {
-//       console.error(error);
-//       errorFiles.push(presave.id);
-//     }
-
-//   }
-
-//   if (errorFiles.length > 0) {
-//     status.errors = errorFiles;
-//   } else {
-//     status.success = true;
-//   }
-
-//   return status;
-
-// };
-
-
-/**
- * Update Apple presave document when the track has been saved to the user's library
- * @param documentId Firestore document ID of presave entry
- */
-const logAppleSave = async (documentId: string): Promise<boolean> => {
-
-  let success = false;
-
-  const docRef = admin.firestore().collection('applePresaves').doc(documentId);
-
-  try {
-    await docRef.set({ hasSaved: true }, { merge: true });
-    success = true;
-  } catch (error) {
-    console.log('Error while trying to log Apple save');
-    console.error(error);
-  }
-
-  return success;
-
-};
-
-/**
- * Create a vertical ticket with user defined variables
+ * Create a vertical picture with user defined variables
  *
  * Creates canvas with background image with variables overlaid
  *
  * Uploads the file to Google Cloud Storage and retrieves a signed URL for download
  *
- * @param name UGC: Name of user
- * @param departing UGC: Departing location of user
- * @param destination UGC: Destination location of user
- * @param index nth presave
+ * @param fromName UGC: 'From' name
+ * @param toName UGC: 'To' name
+ * @param message UGC: 'Message'
  * @param id ID to link to front-end
  */
-const createVerticalImage = async (name: string, departing: string, destination: string, index: number, id: string) => {
+const createVerticalImage = async (fromName: string, toName: string, message: string, id: string) => {
 
-  const backColor = '#232323';
-  const textColor = '#E9E7DA';
-
-  const canvas = createCanvas(1080, 1920);
+  registerFont(`./assets/ernie.ttf`, { family: 'Ernie' });
+  const canvas = createCanvas(1080, 1929);
   const ctx = canvas.getContext('2d');
 
-  registerFont(`./assets/Ticketing.ttf`, { family: 'Ticketing' });
-  const ticket = await loadImage('./assets/ticket-vertical.jpg');
+  const picture = await loadImage('./assets/picture-vertical.jpg');
 
-  ctx.drawImage(ticket, 0, 0);
-  ctx.font = '52px Ticketing';
+  ctx.drawImage(picture, 0, 0);
+  ctx.font = '48px Ernie';
   ctx.textBaseline = 'top';
 
-  // DRAW NAME
-  const nameWidth = ctx.measureText(name).width;
-  ctx.fillStyle = backColor;
-  ctx.fillRect(246, 606, nameWidth, 44);
-  ctx.fillStyle = textColor;
-  ctx.fillText(name, 248, 600);
+  // DRAW 'TO' NAME
+  ctx.save();
+  ctx.rotate(-10 * Math.PI / 180);
+  ctx.fillText(`TO: ${toName}`, 130, 300);
+  ctx.restore();
 
-  // DRAW BARCODE
-  const barcode = createBarcode(index);
-  const barcodeWidth = ctx.measureText(barcode).width;
-  ctx.fillStyle = backColor;
-  ctx.fillRect(246, 1398, barcodeWidth, 44);
-  ctx.fillStyle = textColor;
-  ctx.fillText(barcode, 248, 1392);
+  // DRAW 'FROM' NAME
+  ctx.save();
+  ctx.rotate(-1 * Math.PI / 180);
+  ctx.fillText(`FROM: ${fromName}`, 425, 1180);
+  ctx.restore();
 
-  // DRAW DEPARTING
-  ctx.fillStyle = backColor;
-  ctx.fillText(departing, 246, 885);
+  // DRAW DATE
+  const currentDate = getDate();
+  ctx.save();
+  ctx.rotate(-1 * Math.PI / 180);
+  ctx.fillText(currentDate, 670, 1480);
+  ctx.restore();
 
-  // DRAW DESTINATION
-  ctx.fillStyle = backColor;
-  ctx.fillText(destination, 246, 1078);
+  // DRAW MESSAGE
+  ctx.save();
+  ctx.rotate(-12 * Math.PI / 180);
+  drawMultilineText(ctx, message, {
+    rect: {
+      x: 30,
+      y: 400,
+      width: 700,
+      height: 600
+    },
+    font: 'Ernie',
+    lineHeight: 1.4,
+    minFontSize: 48,
+    maxFontSize: 48
+  });
 
   const buffer = canvas.toBuffer('image/jpeg');
   const filename = `./output/vert-${id}.jpg`;
   fs.writeFileSync(filename, buffer);
 
   const res = await bucket.upload(filename, {
-    destination: `tickets/${id}/DROELOE-ticket-vertical.jpg`
+    destination: `pictures/${id}/DROELOE-picture-vertical.jpg`
   });
 
   fs.unlinkSync(filename);
@@ -1202,59 +872,70 @@ const createVerticalImage = async (name: string, departing: string, destination:
 };
 
 /**
- * Create a vertical ticket with user defined variables
+ * Create a horizontal picture with user defined variables
  *
  * Creates canvas with background image with variables overlaid
  *
  * Uploads the file to Google Cloud Storage and retrieves a signed URL for download
  *
- * @param name UGC: Name of user
- * @param departing UGC: Departing location of user
- * @param destination UGC: Destination location of user
- * @param index nth presave
+ * @param fromName UGC: 'From' name
+ * @param toName UGC: 'To' name
+ * @param message UGC: 'Message'
  * @param id ID to link to front-end
  */
-const createHorizontalImage = async (name: string, departing: string, destination: string, index: number, id: string) => {
+const createHorizontalImage = async (fromName: string, toName: string, message: string, id: string) => {
 
-  const backColor = '#232323';
-  const textColor = '#597BE3';
-
+  registerFont(`./assets/ernie.ttf`, { family: 'Ernie' });
   const canvas = createCanvas(1920, 1080);
   const ctx = canvas.getContext('2d');
 
-  registerFont(`./assets/Ticketing.ttf`, { family: 'Ticketing' });
-  const ticket = await loadImage('./assets/ticket-horizontal.jpg');
+  const picture = await loadImage('./assets/picture-horizontal.jpg');
 
-  ctx.drawImage(ticket, 0, 0);
-  ctx.font = '52px Ticketing';
+  ctx.drawImage(picture, 0, 0);
+  ctx.font = '48px Ernie';
   ctx.textBaseline = 'top';
 
-  // DRAW NAME
-  const nameWidth = ctx.measureText(name).width;
-  ctx.fillStyle = backColor;
-  ctx.fillRect(780, 96, nameWidth, 44);
-  ctx.fillStyle = textColor;
-  ctx.fillText(name, 782, 90);
+  // DRAW 'TO' NAME
+  ctx.save();
+  ctx.rotate(-11 * Math.PI / 180);
+  ctx.fillText(`TO: ${toName}`, 262, 200, 200);
+  ctx.restore();
 
-  // DRAW BARCODE
-  const barcode = createBarcode(index);
-  ctx.fillStyle = backColor;
-  ctx.fillText(barcode, 505, 950);
+  // DRAW 'FROM' NAME
+  ctx.save();
+  ctx.rotate(-1 * Math.PI / 180);
+  ctx.fillText(`FROM: ${fromName}`, 1276, 662);
+  ctx.restore();
 
-  // DRAW DEPARTING
-  ctx.fillStyle = backColor;
-  ctx.fillText(departing, 505, 468);
+  // DRAW DATE
+  const currentDate = getDate();
+  ctx.save();
+  ctx.rotate(-1 * Math.PI / 180);
+  ctx.fillText(currentDate, 1500, 980);
+  ctx.restore();
 
-  // DRAW DESTINATION
-  ctx.fillStyle = backColor;
-  ctx.fillText(destination, 505, 668);
+  // DRAW MESSAGE
+  ctx.save();
+  ctx.rotate(-8 * Math.PI / 180);
+  drawMultilineText(ctx, message, {
+    rect: {
+      x: 100,
+      y: 300,
+      width: 1000,
+      height: 400
+    },
+    font: 'Ernie',
+    lineHeight: 1.4,
+    minFontSize: 48,
+    maxFontSize: 48
+  });
 
   const buffer = canvas.toBuffer('image/jpeg');
   const filename = `./output/hor-${id}.jpg`;
   fs.writeFileSync(filename, buffer);
 
   const res = await bucket.upload(filename, {
-    destination: `tickets/${id}/DROELOE-ticket-horizontal.jpg`
+    destination: `pictures/${id}/DROELOE-picture-horizontal.jpg`
   });
 
   fs.unlinkSync(filename);
@@ -1273,9 +954,9 @@ const getSignedURLs = async (id: string) => {
   const urls: {vertical?: string, horizontal?: string} = {};
 
   try {
-    const [files] = await bucket.getFiles({ prefix: `tickets/${id}` });
+    const [files] = await bucket.getFiles({ prefix: `pictures/${id}` });
     if (files.length !== 2) {
-      throw Error(`Unable to find tickets with ID: ${id}`);
+      throw Error(`Unable to find pictures with ID: ${id}`);
     }
     for (const file of files) {
 
@@ -1302,14 +983,49 @@ const getSignedURLs = async (id: string) => {
 };
 
 /**
- * Create barcode string from an ID
- * @param index ID at the end of the barcode
- * @returns Barcode string in 0000 0000 0000 0012 format
+ * Get date string in 'MMMM Do' format
+ * @example 'October 1st'
  */
-const createBarcode = (index: number) => {
-  const baseString = '0000000000000000';
-  const code = `${baseString}${index}`.slice(-16);
-  const elements = code.match(/.{4}/g);
-  // tslint:disable-next-line: no-non-null-assertion
-  return `${elements![0]} ${elements![1]} ${elements![2]} ${elements![3]}`;
-};
+const getDate = (): string => {
+  return dayjs().format('MMMM Do');
+}
+
+/**
+ * Retrieve the email address of a Spotify account by the presave's data ID
+ * @param dataId UUID to connect frontend presave to backend
+ */
+const getEmailFromDataId = async (dataId: string) => {
+
+  const presaveDocsSnap = await admin.firestore().collection('spotifyPresaves').where('dataIds', 'array-contains', dataId).get();
+  if (presaveDocsSnap.size === 0) {
+    throw Error('No presave with this data ID');
+  }
+  const docData = presaveDocsSnap.docs[0].data();
+  const email = docData.user.email
+  if (email === undefined || email === '') {
+    throw Error('No valid email address available for this account');
+  }
+
+  return email;
+
+}
+
+/**
+ * Add an email address to Klaviyo
+ * @param email User's Spotify email address. May not be valid
+ */
+const subscribeToNewsletter = async (email: string) => {
+
+  const listId = 'SxG2iS';
+  const endpoint = `https://a.klaviyo.com/api/v2/list/${listId}/subscribe`;
+
+  return await axios.post(endpoint, {
+    "api_key": process.env.KLAVIYO_KEY,
+    profiles: [
+      {
+        email
+      }
+    ]
+  });
+
+}
