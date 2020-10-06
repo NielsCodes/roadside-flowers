@@ -1,11 +1,11 @@
-<div id="page-container" [style.height.px]="windowHeight" [@stepAnimation]="stage">
+<div id="page-container" [style.height.px]="(windowHeight < 700 && stage === 'step3') ? 700 : windowHeight" [@stepAnimation]="stage">
 
 
   <div id="start-container" class="step" *ngIf="stage === 'step1'">
   </div>
 
 
-  <div id="form-container" class="step" *ngIf="stage === 'step2' || stage === 'step3' || stage === 'step4'" [style.height.px]="windowHeight">
+  <div id="form-container" class="step" *ngIf="stage === 'step2' || stage === 'step3' || stage === 'step4'" [style.height.px]="(windowHeight < 700 && stage === 'step3') ? 700 : windowHeight">
 
     <div id="form-background"></div>
 
@@ -36,6 +36,8 @@
             <span>{{ formData.message.length }}/300</span>
           </div>
 
+          <div id="form-next-btn" class="btn" *ngIf="stage === 'step3' && isVertical" (click)="onContinue()">NEXT</div>
+
         </form>
       </div>
 
@@ -63,7 +65,7 @@
 
   </div>
 
-  <div id="next-btn" class="btn" (click)="onContinue()" *ngIf="stage === 'step3'">NEXT</div>
+  <div id="next-btn" class="btn" (click)="onContinue()" *ngIf="stage === 'step3' && !isVertical">NEXT</div>
   <div id="consent-message-container" *ngIf="stage === 'step1'">
     <div id="consent-text-wrapper">
       <h5 id="consent-message">We use cookies to ensure you get the best experience. <span></span></h5>

@@ -265,7 +265,7 @@ export class CallbackComponent implements OnInit{
     this.stage = 'picture';
     setTimeout(() => {
       this.stage = 'controls';
-    }, 2000);
+    }, 4000);
   }
 
   // Copy link to clipboard

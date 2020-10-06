@@ -1,6 +1,6 @@
 import { SpotifyAuthorizationData, SpotifyAuthorization, SpotifyUser } from './models';
 import express, { Response, Request, Application, NextFunction } from 'express';
-import { createCanvas, loadImage, registerFont } from 'canvas';
+import { createCanvas, loadImage, registerFont, Canvas } from 'canvas';
 import { Strategy as TwitterStrategy } from 'passport-twitter';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import { Storage, Bucket } from '@google-cloud/storage';
@@ -70,11 +70,7 @@ passport.use(new TwitterStrategy({
     twitter.post('media/upload', { media: fileData }, (error: any, media: any, response: any) => {
 
       if (!error) {
-
         twitter.post('statuses/update', { status: `🌺🌺🌺 @DROELOEMUSIC @bitbird https://presave.droeloe.com`, media_ids: media.media_id_string }, (tweetError: any, tweet: any, tweetResponse: any) => null);
-        // twitter.post('statuses/update', { status: `🌺🌺🌺`, media_ids: media.media_id_string }, (tweetError: any, tweet: any, tweetResponse: any) => null);
-
-
       } else {
         throw Error(error);
       }
@@ -392,7 +388,7 @@ app.post('/register', async (req: Request, res: Response) => {
 
   // Create tickets
   // tslint:disable-next-line: max-line-length
-  const promises = [ createVerticalImage(fromName, toName, message, id), createHorizontalImage(fromName, toName, message, id) ];
+  const promises = [ createHorizontalImage(fromName, toName, message, id) ];
 
   await statsRef.set({
     picturesGenerated: increment
@@ -889,7 +885,7 @@ const createHorizontalImage = async (fromName: string, toName: string, message: 
   const canvas = createCanvas(1920, 1080);
   const ctx = canvas.getContext('2d');
 
-  const picture = await loadImage('./assets/picture-horizontal.jpg');
+  const picture = await loadImage('./assets/picture-horizontal.png');
 
   ctx.drawImage(picture, 0, 0);
   ctx.font = '48px Ernie';
@@ -904,14 +900,14 @@ const createHorizontalImage = async (fromName: string, toName: string, message: 
   // DRAW 'FROM' NAME
   ctx.save();
   ctx.rotate(-1 * Math.PI / 180);
-  ctx.fillText(`FROM: ${fromName}`, 1276, 662);
+  ctx.fillText(`FROM: ${fromName}`, 1276, 642);
   ctx.restore();
 
   // DRAW DATE
   const currentDate = getDate();
   ctx.save();
   ctx.rotate(-1 * Math.PI / 180);
-  ctx.fillText(currentDate, 1500, 980);
+  ctx.fillText(currentDate, 1500, 950);
   ctx.restore();
 
   // DRAW MESSAGE
@@ -930,19 +926,90 @@ const createHorizontalImage = async (fromName: string, toName: string, message: 
     maxFontSize: 48
   });
 
-  const buffer = canvas.toBuffer('image/jpeg');
-  const filename = `./output/hor-${id}.jpg`;
-  fs.writeFileSync(filename, buffer);
-
-  const res = await bucket.upload(filename, {
-    destination: `pictures/${id}/DROELOE-picture-horizontal.jpg`
-  });
-
-  fs.unlinkSync(filename);
+  try {
+    await createOutputImages(canvas, id);
+  } catch (error) {
+    throw Error(`Failed to insert image into output files. ${error.toString()}`);
+  }
 
   return;
 
 };
+
+/**
+ * Create horizontal and vertical output images from one generated picture
+ * - Puts picture in two separate output canvases to create horizontal and vertical output images
+ * - Uploads files to GCS
+ * @param horizontalImage Canvas of created image
+ * @param id Data ID
+ */
+const createOutputImages = async (horizontalImage: Canvas, id: string) => {
+
+  /**
+   * Create a horizontal output image
+   * - Puts the created picture in a horizontal output image
+   * - Uploads file to GCS
+   */
+  const createHorizontalOutputImage = async () => {
+
+    const canvas = createCanvas(1920, 1080);
+    const ctx = canvas.getContext('2d');
+
+    const background = await loadImage('./assets/output-horizontal.jpg');
+    ctx.drawImage(background, 0, 0);
+
+    ctx.save()
+    ctx.rotate(10 * Math.PI / 180);
+    ctx.drawImage(horizontalImage, 800, 80, 1100, 619);
+
+    const buffer = canvas.toBuffer('image/jpeg');
+    const filename = `./output/hor-${id}.jpg`;
+    fs.writeFileSync(filename, buffer);
+
+    await bucket.upload(filename, {
+      destination: `pictures/${id}/DROELOE-picture-horizontal.jpg`
+    });
+
+    fs.unlinkSync(filename);
+
+    return;
+
+  }
+
+  /**
+   * Create a vertical output image
+   * - Puts the created picture in a vertical output image
+   * - Uploads file to GCS
+   */
+  const createVerticalOutputImage = async () => {
+
+    const canvas = createCanvas(1080, 1920);
+    const ctx = canvas.getContext('2d');
+
+    const background = await loadImage('./assets/output-vertical.jpg');
+    ctx.drawImage(background, 0, 0);
+
+    ctx.save()
+    ctx.rotate(8 * Math.PI / 180);
+    ctx.drawImage(horizontalImage, 200, 800, 950, 534);
+
+    const buffer = canvas.toBuffer('image/jpeg');
+    const filename = `./output/vert-${id}.jpg`;
+    fs.writeFileSync(filename, buffer);
+
+    await bucket.upload(filename, {
+      destination: `pictures/${id}/DROELOE-picture-vertical.jpg`
+    });
+
+    fs.unlinkSync(filename);
+
+    return;
+
+  }
+
+  return Promise.all([createHorizontalOutputImage(), createVerticalOutputImage()]);
+
+}
 
 /**
  * Get signed URLs for all files from the given data ID
