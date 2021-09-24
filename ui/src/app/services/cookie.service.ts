@@ -47,20 +47,11 @@ export class CookieService {
     localStorage.removeItem('cookieConsent');
     // Disable Firebase analytics
     this.analytics.setAnalyticsCollectionEnabled(false);
-    // Remove FB Pixel
-    this.scripts.removePixel();
-    this.trackingActive = false;
-    this.checkConsent();
   }
 
   private setTracking() {
     // Enable Firebase analytics
-    this.analytics.setAnalyticsCollectionEnabled(true);
-
-    // Enable FB Pixel
-    this.scripts.loadPixel();
-
-    this.trackingActive = true;
+    // this.analytics.setAnalyticsCollectionEnabled(true);
   }
 
 }
