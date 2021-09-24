@@ -1,20 +1,12 @@
 {
   "projects": {
-    "default": "presave-app",
-    "dev": "presave-app-dev"
+    "default": "nielscodes-portfolio-projects"
   },
   "targets": {
-    "presave-app": {
+    "nielscodes-portfolio-projects": {
       "hosting": {
-        "presave-app": [
-          "presave-app"
-        ]
-      }
-    },
-    "presave-app-dev": {
-      "hosting": {
-        "presave-app": [
-          "presave-app-dev"
+        "roadsideflowers": [
+          "roadsideflowers"
         ]
       }
     }
