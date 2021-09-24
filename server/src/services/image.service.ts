@@ -70,7 +70,6 @@ const bucket = storage.bucket(bucketName!);
     minFontSize: 48,
     maxFontSize: 160
   });
-  console.log(`Drew image with font size ${fontSizeUsed}`);
 
   try {
     await createOutputImages(canvas, id);
