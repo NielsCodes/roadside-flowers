@@ -274,7 +274,7 @@ export class CallbackComponent implements OnInit{
     }
 
     const windowFeatures = 'toolbar=no, menubar=no, width=600, height=700, top=100, left=100';
-    const url = `${this.rootEndpoint}/auth/twitter?dataId=${this.dataId}`;
+    const url = `${this.rootEndpoint}/twitter/auth?dataId=${this.dataId}`;
 
     if (this.popupReference === null || this.popupReference === undefined || this.popupReference.closed) {
       this.popupReference = window.open(url, 'Share to Twitter', windowFeatures);
@@ -337,6 +337,7 @@ export class CallbackComponent implements OnInit{
    * @param message Message to show in the snackbar
    */
   private showSnackbar(message: string) {
+
     if (this.snackbarActive) {
       this.snackbarActive = false;
       clearTimeout(this.snackbarTimeout);

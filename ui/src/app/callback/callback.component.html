@@ -30,13 +30,13 @@
           id="share-any"
           *ngIf="canShare"
           (click)="onMobileShare()">Share elsewhere</button>
-        <button
+        <!-- <button
           class="share-option btn"
           id="newsletter-consent"
           (click)="onNewsletterConsent()"
           *ngIf="referrer === 'spotify' && dataId"
           [ngClass]="{'used': subscribedToNewsletter, 'progress': isSubscribing}"
-          [attr.title]="subscribedToNewsletter ? 'Already subscribed' : 'Be informed of all news by subscribing to our newsletter'">Subscribe to our newsletter</button>
+          [attr.title]="subscribedToNewsletter ? 'Already subscribed' : 'Be informed of all news by subscribing to our newsletter'">Subscribe to our newsletter</button> -->
       </div>
 
     </div>
