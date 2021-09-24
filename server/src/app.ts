@@ -31,7 +31,7 @@ passport.deserializeUser( (obj, cb) => {
 passport.use(new TwitterStrategy({
   consumerKey: process.env.TWITTER_KEY as string,
   consumerSecret: process.env.TWITTER_SECRET as string,
-  callbackURL: `/oauth/callback`,
+  callbackURL: `/twitter/callback`,
   passReqToCallback: true
   },
   async (req, token, tokenSecret, profile, callback) => {
@@ -94,7 +94,7 @@ app.post('/register', imageGenerationHandler)
 app.get('/pictures', imageRetrievalHandler);
 
 // Twitter endpoints
-app.get('twitter/auth', twitterAuthHandler, passport.authenticate('twitter'));
+app.get('/twitter/auth', twitterAuthHandler, passport.authenticate('twitter'));
 app.get('/twitter/callback', passport.authenticate('twitter'), twitterCallbackHandler)
 
 // Start listening on defined port
