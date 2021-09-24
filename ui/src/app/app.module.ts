@@ -28,13 +28,9 @@ import { FileSaverModule } from 'ngx-filesaver';
   imports: [
     BrowserModule,
     AppRoutingModule,
-    AngularFireModule.initializeApp(environment.firebase),
-    AngularFireFunctionsModule,
-    AngularFirestoreModule,
     BrowserAnimationsModule,
     HttpClientModule,
     ClipboardModule,
-    AngularFireAnalyticsModule,
     FormsModule,
     FileSaverModule,
   ],

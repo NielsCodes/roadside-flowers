@@ -22,7 +22,7 @@ export class ApiService {
   /** Get Apple Developer token from server */
   async getAppleToken() {
 
-    const endpoint = `${this.rootEndpoint}/devtoken`;
+    const endpoint = `${this.rootEndpoint}/apple/token`;
     const res = await this.http.get<AppleTokenResult>(endpoint).toPromise();
 
     if (res.success) {
